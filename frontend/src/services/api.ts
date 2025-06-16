@@ -65,6 +65,30 @@ export interface ApiResponse<T> {
   };
 }
 
+export interface RecommendationItem extends Movie, TVShow {
+  similarity_score: number;
+  genres: string[] | string;
+}
+
+export interface RecommendationResponse {
+  success: boolean;
+  data: {
+    sourceMovie?: { id: string; type: string };
+    sourceTVShow?: { id: string; type: string };
+    recommendations: RecommendationItem[];
+    algorithm: string;
+    totalRecommendations: number;
+    requestedGenres?: string[];
+    filters?: any;
+  };
+}
+
+export interface CacheStats {
+  itemRecommendationsCached: number;
+  genreRecommendationsCached: number;
+  totalCached: number;
+}
+
 class ApiService {  private async request<T>(endpoint: string): Promise<T> {
     const response = await fetch(`${API_BASE_URL}${endpoint}`);
     if (!response.ok) {
@@ -193,25 +217,61 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
     if (filters.language) requestBody.languages = [filters.language];
     
     return this.postRequest<any>('/search/advanced', requestBody);
+  }  // Recommendations - New API with Cosine Similarity
+  
+  // Get recommendations for a specific movie
+  async getMovieRecommendations(movieId: string, limit = 10): Promise<RecommendationResponse> {
+    return this.request<RecommendationResponse>(`/recommendations/movie/${movieId}?limit=${limit}`);
   }
-  // Recommendations
-  async getRecommendationsByGenres(genres: string[], type: 'movies' | 'tvshows' = 'movies', limit = 10): Promise<(Movie | TVShow)[]> {
-    const response = await this.postRequest<any>('/recommendations/by-genres', {
+
+  // Get recommendations for a specific TV show
+  async getTVShowRecommendations(tvshowId: string, limit = 10): Promise<RecommendationResponse> {
+    return this.request<RecommendationResponse>(`/recommendations/tvshow/${tvshowId}?limit=${limit}`);
+  }
+
+  // Get recommendations based on multiple genres (updated)
+  async getRecommendationsByGenres(
+    genres: string[], 
+    type: 'movies' | 'tvshows' | 'all' = 'movies', 
+    limit = 20,
+    minRating = 0,
+    minYear = 2000
+  ): Promise<RecommendationResponse> {
+    return this.postRequest<RecommendationResponse>('/recommendations/by-genres', {
       genres,
       type,
+      limit,
+      minRating,
+      minYear
+    });
+  }
+
+  // Get personalized recommendations
+  async getPersonalizedRecommendations(
+    favoriteGenres: string[],
+    preferredType: 'movies' | 'tvshows' | 'all' = 'all',
+    limit = 20
+  ): Promise<RecommendationResponse> {
+    return this.postRequest<RecommendationResponse>('/recommendations/personalized', {
+      favoriteGenres,
+      preferredType,
       limit
     });
-    
-    // Extract the appropriate array from the nested structure
-    if (response.results) {
-      if (type === 'movies') {
-        return response.results.movies || [];
-      } else {
-        return response.results.tvShows || [];
-      }
-    }
-    
-    return [];
+  }
+
+  // Cache management
+  async getCacheStats(): Promise<{ success: boolean; data: CacheStats }> {
+    return this.request<{ success: boolean; data: CacheStats }>('/recommendations/cache/stats');
+  }
+
+  async clearCache(): Promise<{ success: boolean; data: { message: string } }> {
+    return this.deleteRequest<{ success: boolean; data: { message: string } }>('/recommendations/cache');
+  }
+
+  // Legacy function for backward compatibility (deprecated)
+  async getRecommendationsByGenresLegacy(genres: string[], type: 'movies' | 'tvshows' = 'movies', limit = 10): Promise<(Movie | TVShow)[]> {
+    const response = await this.getRecommendationsByGenres(genres, type, limit);
+    return response.data.recommendations || [];
   }
 
   // Analytics
