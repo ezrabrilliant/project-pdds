@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tv, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Tv, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { apiService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import type { TVShow, Genre } from '../services/api';

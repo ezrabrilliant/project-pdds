@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, Filter, X, ChevronDown } from 'lucide-react';
 import { apiService } from '../services/api';
 import type { Movie, TVShow, Genre, SearchFilters } from '../services/api';
 
 const Search: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [searchType, setSearchType] = useState<'movies' | 'tvshows' | 'all'>('all');
   const [filters, setFilters] = useState<SearchFilters>({});
   const [showFilters, setShowFilters] = useState(false);
@@ -16,7 +18,6 @@ const Search: React.FC = () => {
 
   const ratings = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA'];
   const years = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
-
   useEffect(() => {
     const fetchGenres = async () => {
       try {
@@ -26,25 +27,48 @@ const Search: React.FC = () => {
         console.error('Failed to fetch genres:', error);
       }
     };
-    fetchGenres();
-  }, []);
-
-  const handleSearch = async (page = 1) => {
-    if (!searchQuery.trim() && Object.keys(filters).length === 0) return;
+    fetchGenres();    // Auto-search if there's a query parameter from URL
+    const queryFromUrl = searchParams.get('q');
+    if (queryFromUrl && queryFromUrl.trim()) {
+      setSearchQuery(queryFromUrl);
+      // Use setTimeout to ensure state is updated first
+      setTimeout(() => {
+        handleSearch();
+      }, 100);
+    }
+  }, []);const handleSearch = async (page = 1) => {
+    // Require either search query or filters to perform search
+    if (!searchQuery.trim()) {
+      console.warn('Search query is required');
+      return;
+    }
 
     setLoading(true);
     try {
       const searchParams = {
         ...filters,
+        q: searchQuery.trim(), // Add the search query
         page,
         limit: 20,
         type: searchType
-      };
-
-      const response = await apiService.advancedSearch(searchParams);
-      setResults(response.data);
-      setCurrentPage(response.pagination.page);
-      setTotalPages(response.pagination.totalPages);
+      };      const response = await apiService.advancedSearch(searchParams);
+      
+      // Response sudah di-unwrap oleh apiService.request(), jadi response langsung berisi data
+      // Handle different search types
+      let resultsData: (Movie | TVShow)[] = [];
+      if (searchType === 'movies') {
+        resultsData = response.results.movies || [];
+      } else if (searchType === 'tvshows') {
+        resultsData = response.results.tvShows || [];
+      } else {
+        // For 'all', use combined results
+        resultsData = response.results.combined || [];
+      }
+      
+      setResults(resultsData);
+      setCurrentPage(response.pagination.page || 1);
+      // For now, set totalPages based on results length (simplified pagination)
+      setTotalPages(resultsData.length >= (response.pagination.limit || 20) ? page + 1 : page);
     } catch (error) {
       console.error('Search failed:', error);
       setResults([]);
@@ -65,12 +89,11 @@ const Search: React.FC = () => {
     setSearchQuery('');
     setResults([]);
   };
-
   const renderContentCard = (item: Movie | TVShow) => {
     const isMovie = 'duration_minutes' in item;
     
     return (
-      <div key={item.id} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105">
+      <div key={item.show_id} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105">
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-semibold text-white line-clamp-2">{item.title}</h3>
           <span className="px-3 py-1 bg-purple-600/20 rounded-full text-xs text-purple-300 font-medium">
@@ -96,19 +119,38 @@ const Search: React.FC = () => {
             </span>
           </div>
         </div>
-        
-        <div className="mt-4">
+          <div className="mt-4">
           <div className="flex flex-wrap gap-1">
-            {item.genres.slice(0, 3).map((genre, index) => (
-              <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                {genre}
-              </span>
-            ))}
-            {item.genres.length > 3 && (
-              <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                +{item.genres.length - 3}
-              </span>
-            )}
+            {(() => {
+              const genres = item.genres as any;
+              let genreArray: string[] = [];
+              if (typeof genres === 'string') {
+                genreArray = genres.split(',').map((g: string) => g.trim());
+              } else if (Array.isArray(genres)) {
+                genreArray = genres;
+              }
+              
+              return genreArray.slice(0, 3).map((genre: string, index: number) => (
+                <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
+                  {genre}
+                </span>
+              ));
+            })()}
+            {(() => {
+              const genres = item.genres as any;
+              let genreArray: string[] = [];
+              if (typeof genres === 'string') {
+                genreArray = genres.split(',').map((g: string) => g.trim());
+              } else if (Array.isArray(genres)) {
+                genreArray = genres;
+              }
+              
+              return genreArray.length > 3 ? (
+                <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
+                  +{genreArray.length - 3}
+                </span>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>
@@ -240,10 +282,8 @@ const Search: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Results */}
-      {results.length > 0 && (
+      </div>      {/* Results */}
+      {results && results.length > 0 && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-white">

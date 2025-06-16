@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Film, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Film, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { apiService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import type { Movie, Genre } from '../services/api';
@@ -9,10 +9,13 @@ const Movies: React.FC = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [totalPages, setTotalPages] = useState(1);  const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedRating, setSelectedRating] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
   const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added'>('title');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,24 +43,43 @@ const Movies: React.FC = () => {
     };
 
     fetchData();
-  }, [currentPage]);
-  const handleSearch = async () => {
-    if (!searchTerm.trim() && !selectedGenre) return;
+  }, [currentPage]);  const handleSearch = async () => {
+    if (!searchTerm.trim() && !selectedGenre && !selectedRating && !selectedYear && !selectedCountry) {
+      // If no filters, reload initial data
+      try {
+        const moviesResponse = await apiService.getMovies({ page: 1, limit: 20 });
+        const moviesData = moviesResponse as any;
+        setMovies(moviesData.movies || []);
+        setCurrentPage(1);
+        setTotalPages(moviesData.pagination?.totalPages || 1);
+      } catch (error) {
+        console.error('Failed to reload movies:', error);
+      }
+      return;
+    }
 
     setLoading(true);
     try {
-      // Use advanced search with search term
-      const response = await apiService.advancedSearch({
-        q: searchTerm.trim() || undefined,
-        genre: selectedGenre || undefined,
-        sortBy,
-        sortOrder: 'desc',
+      // Use advanced search with all filters
+      const searchParams: any = {
         type: 'movies',
         page: 1,
-        limit: 20
-      });
+        limit: 20,
+        sortBy,
+        sortOrder: 'desc'
+      };
+
+      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
+      if (selectedGenre) searchParams.genre = selectedGenre;
+      if (selectedRating) searchParams.rating = selectedRating;
+      if (selectedYear) searchParams.releaseYear = parseInt(selectedYear);
+      if (selectedCountry) searchParams.country = selectedCountry;
+
+      const response = await apiService.advancedSearch(searchParams);
       
-      console.log('Search response:', response);      // Handle response structure (now unwrapped by API service)
+      console.log('Search response:', response);
+
+      // Handle response structure (now unwrapped by API service)
       const searchData = response as any;
       
       setMovies(searchData.results?.movies || searchData.movies || []);
@@ -69,13 +91,16 @@ const Movies: React.FC = () => {
       setLoading(false);
     }
   };
-
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedGenre('');
+    setSelectedRating('');
+    setSelectedYear('');
+    setSelectedCountry('');
     setCurrentPage(1);
     // Reload initial data
-    window.location.reload();  };
+    handleSearch();
+  };
 
   return (
     <div className="space-y-8">
@@ -88,11 +113,10 @@ const Movies: React.FC = () => {
         <p className="text-slate-300 text-lg">
           Discover amazing movies from our extensive collection
         </p>
-      </div>
-
-      {/* Search and Filters */}
+      </div>      {/* Search and Filters */}
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
-        <div className="grid md:grid-cols-4 gap-4">
+        {/* Main search row */}
+        <div className="grid md:grid-cols-4 gap-4 mb-4">
           <div className="md:col-span-2 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input
@@ -109,7 +133,8 @@ const Movies: React.FC = () => {
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
             className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-          >            <option value="">All Genres</option>
+          >
+            <option value="">All Genres</option>
             {Array.isArray(genres) && genres.map(genre => (
               <option key={genre.id} value={genre.name}>{genre.name}</option>
             ))}
@@ -124,13 +149,60 @@ const Movies: React.FC = () => {
               {loading ? 'Searching...' : 'Search'}
             </button>
             <button
-              onClick={clearFilters}
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors"
             >
               <Filter size={16} />
             </button>
           </div>
         </div>
+
+        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <div className="grid md:grid-cols-4 gap-4 pt-4 border-t border-slate-600/50">
+            <select
+              value={selectedRating}
+              onChange={(e) => setSelectedRating(e.target.value)}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            >
+              <option value="">All Ratings</option>
+              <option value="G">G</option>
+              <option value="PG">PG</option>
+              <option value="PG-13">PG-13</option>
+              <option value="R">R</option>
+              <option value="NC-17">NC-17</option>
+            </select>
+
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            >
+              <option value="">All Years</option>
+              {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'title' | 'release_year' | 'date_added')}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            >
+              <option value="title">Sort by Title</option>
+              <option value="release_year">Sort by Year</option>
+              <option value="date_added">Sort by Date Added</option>
+            </select>
+
+            <button
+              onClick={clearFilters}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors flex items-center justify-center space-x-2"
+            >
+              <X size={16} />
+              <span>Clear Filters</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Loading */}
