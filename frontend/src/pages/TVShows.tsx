@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Tv, Search, Filter, Calendar, Clock, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Tv, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiService } from '../services/api';
+import MovieCard from '../components/MovieCard';
 import type { TVShow, Genre } from '../services/api';
 
 const TVShows: React.FC = () => {
@@ -77,72 +77,7 @@ const TVShows: React.FC = () => {
     setSelectedGenre('');
     setCurrentPage(1);
     // Reload initial data
-    window.location.reload();
-  };
-  const renderTVShowCard = (tvShow: TVShow) => (
-    <Link
-      key={tvShow.show_id}
-      to={`/tv-shows/${tvShow.show_id}`}
-      className="group bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105"
-    >
-      {/* TV Show Poster Placeholder */}
-      <div className="aspect-[2/3] bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-lg mb-4 flex items-center justify-center border border-purple-500/20 group-hover:border-purple-500/40 transition-all duration-300">
-        <Tv className="text-slate-400 group-hover:text-purple-400 transition-colors" size={32} />
-      </div>
-
-      {/* TV Show Info */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
-          {tvShow.title}
-        </h3>
-        
-        <p className="text-slate-400 text-sm line-clamp-3">{tvShow.description}</p>
-        
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <div className="flex items-center space-x-1">
-            <Calendar size={12} />
-            <span>{tvShow.release_year}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Clock size={12} />
-            <span>{tvShow.duration}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Star size={12} />
-            <span>{tvShow.rating}</span>
-          </div>
-        </div>        {/* Genres */}
-        <div className="flex flex-wrap gap-1">
-          {(() => {
-            const genres = tvShow.genres as any;
-            if (typeof genres === 'string') {
-              return genres.split(',').slice(0, 2).map((genre: string, index: number) => (
-                <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                  {genre.trim()}
-                </span>
-              ));
-            } else if (Array.isArray(genres)) {
-              return genres.slice(0, 2).map((genre: string, index: number) => (
-                <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                  {genre}
-                </span>
-              ));
-            }
-            return null;
-          })()}
-          {(() => {
-            const genres = tvShow.genres as any;
-            const genreCount = typeof genres === 'string' ? genres.split(',').length : (Array.isArray(genres) ? genres.length : 0);
-            return genreCount > 2 && (
-              <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                +{genreCount - 2}
-              </span>
-            );
-          })()}
-        </div>
-      </div>
-    </Link>
-  );
+    window.location.reload();  };
 
   return (
     <div className="space-y-8">
@@ -215,10 +150,15 @@ const TVShows: React.FC = () => {
             <h2 className="text-2xl font-semibold text-white">
               {searchTerm || selectedGenre ? 'Search Results' : 'All TV Shows'} ({tvShows.length} items)
             </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            {tvShows.map((tvShow) => renderTVShowCard(tvShow))}
+          </div>          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+            {tvShows.map((tvShow) => (
+              <MovieCard
+                key={tvShow.show_id}
+                item={tvShow}
+                type="tvshow"
+                size="medium"
+              />
+            ))}
           </div>
 
           {/* Pagination */}

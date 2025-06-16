@@ -71,4 +71,14 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  
+  /* Custom scrollbar hiding */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

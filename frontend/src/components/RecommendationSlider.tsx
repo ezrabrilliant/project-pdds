@@ -16,11 +16,9 @@ const RecommendationSlider: React.FC<RecommendationSliderProps> = ({
   title,
   className = ''
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);  const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 200; // width of small card + gap
+      const scrollAmount = 176; // width of small card (w-40 = 160px) + gap (16px)
       const currentScroll = scrollContainerRef.current.scrollLeft;
       const newScroll = direction === 'left' 
         ? currentScroll - scrollAmount 
@@ -69,21 +67,15 @@ const RecommendationSlider: React.FC<RecommendationSliderProps> = ({
             scrollbarWidth: 'none',
             msOverflowStyle: 'none'
           }}
-        >
-          {items.map((item) => (
+        >          {items.map((item) => (
             <div key={item.show_id} className="flex-none">
               <MovieCard
                 item={item}
                 type={type}
                 size="small"
-                className="w-48 h-72"
               />
             </div>
-          ))}
-        </div>
-        
-        {/* Fade gradient on the right */}
-        <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-slate-900 to-transparent pointer-events-none" />
+          ))}        </div>
       </div>
     </div>
   );
