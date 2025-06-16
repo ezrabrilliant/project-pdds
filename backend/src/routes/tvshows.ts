@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { pgPool } from '../config/database';
-import { APIResponse, Movie } from '../types';
+import { APIResponse, TVShow } from '../types';
 
 const router = Router();
 
-// Get all movies with pagination and filtering
+// Get all TV shows with pagination and filtering
 router.get('/', async (req, res) => {
   try {
     const {
@@ -32,34 +32,34 @@ router.get('/', async (req, res) => {
     let paramIndex = 1;
 
     if (search) {
-      whereConditions.push(`(m.title ILIKE $${paramIndex} OR m.description ILIKE $${paramIndex})`);
+      whereConditions.push(`(t.title ILIKE $${paramIndex} OR t.description ILIKE $${paramIndex})`);
       queryParams.push(`%${search}%`);
       paramIndex++;
     }
 
     if (year) {
-      whereConditions.push(`m.release_year = $${paramIndex}`);
+      whereConditions.push(`t.release_year = $${paramIndex}`);
       queryParams.push(Number(year));
       paramIndex++;
     }
 
     if (rating) {
-      whereConditions.push(`m.rating = $${paramIndex}`);
+      whereConditions.push(`t.rating = $${paramIndex}`);
       queryParams.push(rating);
       paramIndex++;
     }
 
     if (country) {
-      whereConditions.push(`m.country ILIKE $${paramIndex}`);
+      whereConditions.push(`t.country ILIKE $${paramIndex}`);
       queryParams.push(`%${country}%`);
       paramIndex++;
     }
 
     if (genre) {
       whereConditions.push(`EXISTS (
-        SELECT 1 FROM movie_genres mg 
-        JOIN genres g ON mg.genre_id = g.id 
-        WHERE mg.movie_id = m.show_id AND g.name ILIKE $${paramIndex}
+        SELECT 1 FROM tvshow_genres tg 
+        JOIN genres g ON tg.genre_id = g.id 
+        WHERE tg.tvshow_id = t.show_id AND g.name ILIKE $${paramIndex}
       )`);
       queryParams.push(`%${genre}%`);
       paramIndex++;
@@ -70,17 +70,17 @@ router.get('/', async (req, res) => {
     // Main query with genres
     const query = `
       SELECT 
-        m.*,
+        t.*,
         COALESCE(
           string_agg(DISTINCT g.name, ', ' ORDER BY g.name), 
           'Unknown'
         ) as genres
-      FROM movies m
-      LEFT JOIN movie_genres mg ON m.show_id = mg.movie_id
-      LEFT JOIN genres g ON mg.genre_id = g.id
+      FROM tv_shows t
+      LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+      LEFT JOIN genres g ON tg.genre_id = g.id
       ${whereClause}
-      GROUP BY m.show_id
-      ORDER BY m.${sortField} ${String(sortOrder).toUpperCase()}
+      GROUP BY t.show_id
+      ORDER BY t.${sortField} ${String(sortOrder).toUpperCase()}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
@@ -88,29 +88,29 @@ router.get('/', async (req, res) => {
 
     // Count query for pagination
     const countQuery = `
-      SELECT COUNT(DISTINCT m.show_id) as total
-      FROM movies m
-      LEFT JOIN movie_genres mg ON m.show_id = mg.movie_id
-      LEFT JOIN genres g ON mg.genre_id = g.id
+      SELECT COUNT(DISTINCT t.show_id) as total
+      FROM tv_shows t
+      LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+      LEFT JOIN genres g ON tg.genre_id = g.id
       ${whereClause}
     `;
 
-    const [moviesResult, countResult] = await Promise.all([
+    const [tvShowsResult, countResult] = await Promise.all([
       pgPool.query(query, queryParams),
       pgPool.query(countQuery, queryParams.slice(0, -2)) // Remove limit and offset for count
     ]);
 
-    const totalMovies = parseInt(countResult.rows[0].total);
-    const totalPages = Math.ceil(totalMovies / Number(limit));
+    const totalTVShows = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(totalTVShows / Number(limit));
 
     const response: APIResponse<any> = {
       success: true,
       data: {
-        movies: moviesResult.rows,
+        tvShows: tvShowsResult.rows,
         pagination: {
           page: Number(page),
           limit: Number(limit),
-          total: totalMovies,
+          total: totalTVShows,
           totalPages,
           hasNext: Number(page) < totalPages,
           hasPrev: Number(page) > 1
@@ -128,33 +128,33 @@ router.get('/', async (req, res) => {
     res.json(response);
 
   } catch (error) {
-    console.error('Error fetching movies:', error);
+    console.error('Error fetching TV shows:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch movies',
+      error: 'Failed to fetch TV shows',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-// Get movie by ID
+// Get TV show by ID
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     const query = `
       SELECT 
-        m.*,
+        t.*,
         COALESCE(
           string_agg(DISTINCT g.name, ', ' ORDER BY g.name), 
           'Unknown'
         ) as genres,
         ARRAY_AGG(DISTINCT g.name) as genre_list
-      FROM movies m
-      LEFT JOIN movie_genres mg ON m.show_id = mg.movie_id
-      LEFT JOIN genres g ON mg.genre_id = g.id
-      WHERE m.show_id = $1
-      GROUP BY m.show_id
+      FROM tv_shows t
+      LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+      LEFT JOIN genres g ON tg.genre_id = g.id
+      WHERE t.show_id = $1
+      GROUP BY t.show_id
     `;
 
     const result = await pgPool.query(query, [id]);
@@ -162,12 +162,12 @@ router.get('/:id', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: 'Movie not found',
-        message: `Movie with ID ${id} does not exist`
+        error: 'TV show not found',
+        message: `TV show with ID ${id} does not exist`
       });
     }
 
-    const response: APIResponse<Movie> = {
+    const response: APIResponse<TVShow> = {
       success: true,
       data: result.rows[0]
     };
@@ -175,33 +175,33 @@ router.get('/:id', async (req, res) => {
     res.json(response);
 
   } catch (error) {
-    console.error('Error fetching movie:', error);
+    console.error('Error fetching TV show:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch movie',
+      error: 'Failed to fetch TV show',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-// GET /api/movies/top/rated - Get top rated movies
+// GET /api/tvshows/top/rated - Get top rated TV shows
 router.get('/top/rated', async (req, res) => {
   try {
     const { limit = 20 } = req.query;
 
     const query = `
       SELECT 
-        m.*,
+        t.*,
         COALESCE(
           string_agg(DISTINCT g.name, ', ' ORDER BY g.name), 
           'Unknown'
         ) as genres
-      FROM movies m
-      LEFT JOIN movie_genres mg ON m.show_id = mg.movie_id
-      LEFT JOIN genres g ON mg.genre_id = g.id
-      WHERE m.vote_count > 100
-      GROUP BY m.show_id
-      ORDER BY m.vote_average DESC, m.vote_count DESC
+      FROM tv_shows t
+      LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+      LEFT JOIN genres g ON tg.genre_id = g.id
+      WHERE t.vote_count > 50
+      GROUP BY t.show_id
+      ORDER BY t.vote_average DESC, t.vote_count DESC
       LIMIT $1
     `;
 
@@ -210,41 +210,41 @@ router.get('/top/rated', async (req, res) => {
     const response: APIResponse<any> = {
       success: true,
       data: {
-        movies: result.rows,
+        tvShows: result.rows,
         type: 'top_rated',
-        criteria: 'Sorted by vote_average (minimum 100 votes)'
+        criteria: 'Sorted by vote_average (minimum 50 votes)'
       }
     };
 
     res.json(response);
 
   } catch (error) {
-    console.error('Error fetching top rated movies:', error);
+    console.error('Error fetching top rated TV shows:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch top rated movies',
+      error: 'Failed to fetch top rated TV shows',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-// GET /api/movies/top/popular - Get most popular movies
+// GET /api/tvshows/top/popular - Get most popular TV shows
 router.get('/top/popular', async (req, res) => {
   try {
     const { limit = 20 } = req.query;
 
     const query = `
       SELECT 
-        m.*,
+        t.*,
         COALESCE(
           string_agg(DISTINCT g.name, ', ' ORDER BY g.name), 
           'Unknown'
         ) as genres
-      FROM movies m
-      LEFT JOIN movie_genres mg ON m.show_id = mg.movie_id
-      LEFT JOIN genres g ON mg.genre_id = g.id
-      GROUP BY m.show_id
-      ORDER BY m.popularity DESC
+      FROM tv_shows t
+      LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+      LEFT JOIN genres g ON tg.genre_id = g.id
+      GROUP BY t.show_id
+      ORDER BY t.popularity DESC
       LIMIT $1
     `;
 
@@ -253,7 +253,7 @@ router.get('/top/popular', async (req, res) => {
     const response: APIResponse<any> = {
       success: true,
       data: {
-        movies: result.rows,
+        tvShows: result.rows,
         type: 'most_popular',
         criteria: 'Sorted by popularity score'
       }
@@ -262,10 +262,10 @@ router.get('/top/popular', async (req, res) => {
     res.json(response);
 
   } catch (error) {
-    console.error('Error fetching popular movies:', error);
+    console.error('Error fetching popular TV shows:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch popular movies',
+      error: 'Failed to fetch popular TV shows',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
