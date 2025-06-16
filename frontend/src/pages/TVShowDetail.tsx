@@ -4,7 +4,7 @@ import { Calendar, Clock, Star, Globe, Shield, ArrowLeft, Tv } from 'lucide-reac
 import { apiService } from '../services/api';
 import { useTMDBPoster } from '../hooks/useTMDBPoster';
 import { useTMDBDetails } from '../hooks/useTMDBDetails';
-import RecommendationSlider from '../components/RecommendationSlider';
+import TVShowSlider from '../components/TVShowSlider';
 import CastSlider from '../components/CastSlider';
 import type { TVShow } from '../services/api';
 
@@ -46,17 +46,19 @@ const TVShowDetail: React.FC = () => {
           genreArray = genres.split(',').map((g: string) => g.trim());
         } else if (Array.isArray(genres)) {
           genreArray = genres;
-        }
-          if (genreArray.length > 0) {
-          const recs = await apiService.getRecommendationsByGenres(
+        }        if (genreArray.length > 0) {
+          const recs = await apiService.getRecommendationsByGenresLegacy(
             genreArray.slice(0, 3),
             'tvshows',
             6
           );
           
-          // Ensure recs is an array and filter out current TV show
-          const recsArray = Array.isArray(recs) ? recs : [];
-          setRecommendations(recsArray.filter(rec => rec.show_id !== tvShowData.show_id) as TVShow[]);
+          // Filter out current TV show and ensure content type is tvshow
+          const filteredRecs = recs.filter(rec => 
+            rec.show_id !== tvShowData.show_id && 
+            (rec as any).content_type === 'tvshow'
+          ) as TVShow[];
+          setRecommendations(filteredRecs);
         }
       } catch (error) {
         console.error('Failed to fetch TV show:', error);
@@ -215,9 +217,8 @@ const TVShowDetail: React.FC = () => {
         </div>
       </div>      {/* Recommendations */}
       {recommendations.length > 0 && (
-        <RecommendationSlider
+        <TVShowSlider
           items={recommendations}
-          type="tvshow"
           title="Similar TV Shows"
         />
       )}

@@ -1,20 +1,22 @@
 import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import RecommendationCard from './RecommendationCard';
-import type { RecommendationItem } from '../services/api';
+import MovieCardEnhanced from './MovieCardEnhanced';
+import type { Movie } from '../services/api';
 
-interface RecommendationSliderProps {
-  items: RecommendationItem[];
+interface MovieSliderProps {
+  items: Movie[];
   title: string;
   className?: string;
 }
 
-const RecommendationSlider: React.FC<RecommendationSliderProps> = ({
+const MovieSlider: React.FC<MovieSliderProps> = ({
   items,
   title,
   className = ''
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);  const scroll = (direction: 'left' | 'right') => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const scrollAmount = 176; // width of small card (w-40 = 160px) + gap (16px)
       const currentScroll = scrollContainerRef.current.scrollLeft;
@@ -58,7 +60,8 @@ const RecommendationSlider: React.FC<RecommendationSliderProps> = ({
       </div>
 
       {/* Scrollable container */}
-      <div className="relative">        <div
+      <div className="relative">
+        <div
           ref={scrollContainerRef}
           className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
           style={{
@@ -67,15 +70,17 @@ const RecommendationSlider: React.FC<RecommendationSliderProps> = ({
           }}
         >          {items.map((item) => (
             <div key={item.show_id} className="flex-none">
-              <RecommendationCard
+              <MovieCardEnhanced
                 item={item}
+                type="movie"
                 size="small"
               />
             </div>
-          ))}</div>
+          ))}
+        </div>
       </div>
     </div>
   );
 };
 
-export default RecommendationSlider;
+export default MovieSlider;

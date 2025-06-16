@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
     const result = await pgPool.query(query);
 
     // Calculate totals and filter out empty genres unless requested
-    const { includeEmpty = false, hideTVShowOnly = false } = req.query;
+    const { includeEmpty = false } = req.query;
     
     let genresWithTotals = result.rows.map(genre => ({
       id: genre.id,
@@ -34,11 +34,6 @@ router.get('/', async (req, res) => {
     // Filter out empty genres unless explicitly requested
     if (!includeEmpty) {
       genresWithTotals = genresWithTotals.filter(genre => genre.total_count > 0);
-    }
-
-    // Filter out TV show only genres if requested
-    if (hideTVShowOnly === 'true') {
-      genresWithTotals = genresWithTotals.filter(genre => genre.movie_count > 0);
     }
 
     // Sort by total count descending, then by name
@@ -57,13 +52,7 @@ router.get('/', async (req, res) => {
         stats: {
           totalGenres: result.rows.length,
           genresWithContent: genresWithTotals.length,
-          emptyGenres: result.rows.length - genresWithTotals.length,
-          genresWithMovies: genresWithTotals.filter(g => g.movie_count > 0).length,
-          genresWithTVShowsOnly: genresWithTotals.filter(g => g.movie_count === 0 && g.tvshow_count > 0).length,
-          filters: {
-            includeEmpty: includeEmpty === 'true',
-            hideTVShowOnly: hideTVShowOnly === 'true'
-          }
+          emptyGenres: result.rows.length - genresWithTotals.length
         }
       }
     };

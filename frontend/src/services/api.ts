@@ -65,22 +65,32 @@ export interface ApiResponse<T> {
   };
 }
 
-export interface RecommendationItem extends Movie, TVShow {
-  similarity_score: number;
+export interface RecommendationItem {
+  show_id: string;
+  title: string;
+  description: string;
   genres: string[] | string;
+  release_year: number;
+  rating?: string;
+  vote_average?: number;
+  imdb_rating?: number;
+  duration_minutes?: number; // for movies
+  duration?: string; // for TV shows
+  similarity_score: number;
+  director?: string;
+  cast_members?: string;
+  country?: string;
+  date_added?: string;
 }
 
 export interface RecommendationResponse {
-  success: boolean;
-  data: {
-    sourceMovie?: { id: string; type: string };
-    sourceTVShow?: { id: string; type: string };
-    recommendations: RecommendationItem[];
-    algorithm: string;
-    totalRecommendations: number;
-    requestedGenres?: string[];
-    filters?: any;
-  };
+  sourceMovie?: { id: string; type: string };
+  sourceTVShow?: { id: string; type: string };
+  recommendations: RecommendationItem[];
+  algorithm: string;
+  totalRecommendations: number;
+  requestedGenres?: string[];
+  filters?: any;
 }
 
 export interface CacheStats {
@@ -119,6 +129,25 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
     // Handle wrapped response structure
     if (jsonResponse.success && jsonResponse.data) {
       return jsonResponse.data;
+    }
+    
+    return jsonResponse;
+  }
+  private async deleteRequest<T>(endpoint: string): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+    const jsonResponse = await response.json();
+    
+    // Handle wrapped response structure
+    if (jsonResponse.success !== undefined) {
+      return jsonResponse;
     }
     
     return jsonResponse;
@@ -267,11 +296,10 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
   async clearCache(): Promise<{ success: boolean; data: { message: string } }> {
     return this.deleteRequest<{ success: boolean; data: { message: string } }>('/recommendations/cache');
   }
-
   // Legacy function for backward compatibility (deprecated)
   async getRecommendationsByGenresLegacy(genres: string[], type: 'movies' | 'tvshows' = 'movies', limit = 10): Promise<(Movie | TVShow)[]> {
     const response = await this.getRecommendationsByGenres(genres, type, limit);
-    return response.data.recommendations || [];
+    return response.recommendations || [];
   }
 
   // Analytics
@@ -293,6 +321,24 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
 
   async getTopDirectors(): Promise<any> {
     return this.request<any>('/analytics/top-directors');
+  }
+
+  // Content search (wrapper for advancedSearch)
+  async searchContent(options: { 
+    query: string; 
+    type?: 'movies' | 'tvshows'; 
+    limit?: number 
+  }): Promise<{ movies?: Movie[]; tvShows?: TVShow[] }> {
+    const response = await this.advancedSearch({
+      q: options.query,
+      type: options.type || 'all',
+      limit: options.limit || 10
+    });
+    
+    return {
+      movies: response.movies || [],
+      tvShows: response.tvShows || []
+    };
   }
 }
 

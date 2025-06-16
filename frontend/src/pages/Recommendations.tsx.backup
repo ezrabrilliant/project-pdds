@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, TrendingUp, Film, Tv, Heart, Search } from 'lucide-react';
 import { apiService } from '../services/api';
-import MovieCardEnhanced from '../components/MovieCardEnhanced';
+import RecommendationCard from '../components/RecommendationCard';
 import type { Movie, TVShow, Genre, RecommendationItem } from '../services/api';
 
 const Recommendations: React.FC = () => {
@@ -255,7 +255,110 @@ const Recommendations: React.FC = () => {
       )}
 
       {/* Recommendations Results */}
-      {!loading && recommendations.length > 0 && (        
+      {!loading && recommendations.length > 0 && (        <div className="space-y-6">
+          {/* Algorithm Information */}
+          <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 border border-purple-500/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <TrendingUp className="text-purple-400" size={20} />
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    {recommendations.length} Recommendations Found
+                  </h3>
+                  <p className="text-slate-400 text-sm">
+                    Algorithm: {algorithmUsed.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-slate-300 text-sm">Content Type: 
+                  <span className="ml-1 px-2 py-1 bg-purple-600/20 rounded-full text-xs">
+                    {contentType === 'all' ? 'Movies & TV Shows' : contentType.charAt(0).toUpperCase() + contentType.slice(1)}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recommendations Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {recommendations.map((item) => (
+              <div key={item.show_id} className="relative">
+                <MovieCard
+                  item={item}
+                  type={'duration_minutes' in item ? 'movie' : 'tvshow'}
+                  size="small"
+                />
+                {/* Similarity Score Badge */}
+                {item.similarity_score && (
+                  <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                    {(item.similarity_score * 100).toFixed(0)}%
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}      {/* No Results */}
+      {!loading && hasSearched && recommendations.length === 0 && (
+        <div className="text-center py-8">
+          <Sparkles className="mx-auto text-slate-500 mb-3" size={40} />
+          <h3 className="text-lg font-semibold text-slate-400 mb-1">No recommendations found</h3>
+          <p className="text-slate-500 text-sm">Try selecting different genres or content type</p>
+        </div>
+      )}
+
+      {/* Getting Started */}
+      {!hasSearched && (
+        <div className="text-center py-8">
+          <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl p-6 border border-purple-500/20">
+            <Sparkles className="mx-auto text-purple-400 mb-3" size={40} />
+            <h3 className="text-lg font-semibold text-white mb-1">Ready to Discover?</h3>
+            <p className="text-slate-300 text-sm">Select your favorite genres above to get personalized recommendations</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mode Selection */}
+      <div className="flex justify-center">
+        <div className="flex bg-slate-800/50 backdrop-blur-sm rounded-xl p-1 border border-purple-500/20">
+          <button
+            onClick={() => {
+              setSearchMode('genre');
+              setSelectedItem(null);
+              setRecommendations([]);
+              setHasSearched(false);
+            }}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all ${
+              searchMode === 'genre'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                : 'text-slate-300 hover:text-white'
+            }`}
+          >
+            <Heart size={20} />
+            <span>By Genres</span>
+          </button>
+          <button
+            onClick={() => {
+              setSearchMode('item');
+              setSelectedGenres([]);
+              setRecommendations([]);
+              setHasSearched(false);
+            }}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all ${
+              searchMode === 'item'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                : 'text-slate-300 hover:text-white'
+            }`}
+          >
+            <Search size={20} />
+            <span>Similar to Item</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Genre-based Recommendations */}
+      {searchMode === 'genre' && (
         <div className="space-y-6">
           {/* Algorithm Information */}
           <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 border border-purple-500/20">
@@ -279,42 +382,155 @@ const Recommendations: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>          {/* Recommendations Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-start">
+          </div>
+
+          {/* Recommendations Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             {recommendations.map((item) => (
-              <MovieCardEnhanced
-                key={item.show_id}
-                item={item as (Movie | TVShow)}
-                type={(() => {
-                  // First check for content_type property from backend
-                  if ((item as any).content_type) {
-                    return (item as any).content_type === 'movie' ? 'movie' : 'tvshow';
-                  }
-                  // Fallback to duration_minutes check
-                  return ('duration_minutes' in item) ? 'movie' : 'tvshow';
-                })()}
-                size="medium"
-                showFullDescription={true}
-              />
+              <div key={item.show_id} className="relative">
+                <MovieCard
+                  item={item}
+                  type={'duration_minutes' in item ? 'movie' : 'tvshow'}
+                  size="small"
+                />
+                {/* Similarity Score Badge */}
+                {item.similarity_score && (
+                  <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                    {(item.similarity_score * 100).toFixed(0)}%
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
-      )}      {/* No Results */}
-      {!loading && hasSearched && recommendations.length === 0 && (
-        <div className="text-center py-8">
-          <Sparkles className="mx-auto text-slate-500 mb-3" size={40} />
-          <h3 className="text-lg font-semibold text-slate-400 mb-1">No recommendations found</h3>
-          <p className="text-slate-500 text-sm">Try selecting different genres or content type</p>
-        </div>
       )}
 
-      {/* Getting Started */}
-      {!hasSearched && (
-        <div className="text-center py-8">
-          <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl p-6 border border-purple-500/20">
-            <Sparkles className="mx-auto text-purple-400 mb-3" size={40} />
-            <h3 className="text-lg font-semibold text-white mb-1">Ready to Discover?</h3>
-            <p className="text-slate-300 text-sm">Select your favorite genres above to get personalized recommendations</p>
+      {/* Item-based Recommendations */}
+      {searchMode === 'item' && (
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
+          <div className="space-y-4">
+            {/* Content Type Selection */}
+            <div className="flex justify-center">
+              <div className="flex bg-slate-700/50 rounded-xl p-1">
+                <button
+                  onClick={() => setContentType('movies')}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all ${
+                    contentType === 'movies'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Film size={20} />
+                  <span>Movies</span>
+                </button>
+                <button
+                  onClick={() => setContentType('tvshows')}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all ${
+                    contentType === 'tvshows'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Tv size={20} />
+                  <span>TV Shows</span>
+                </button>
+                <button
+                  onClick={() => setContentType('all')}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all ${
+                    contentType === 'all'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Heart size={20} />
+                  <span>Both</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Item Search */}
+            <div className="space-y-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for a movie or TV show..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    searchItems(e.target.value);
+                  }}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+              </div>
+
+              {/* Search Results */}
+              {availableItems.length > 0 && (
+                <div className="max-h-60 overflow-y-auto bg-slate-700/30 rounded-xl border border-slate-600">
+                  {availableItems.map((item) => (
+                    <button
+                      key={item.show_id}
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setSearchQuery(item.title);
+                        setAvailableItems([]);
+                      }}
+                      className="w-full p-3 text-left hover:bg-slate-600/50 transition-colors border-b border-slate-600 last:border-b-0"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {'duration_minutes' in item ? <Film size={16} className="text-purple-400" /> : <Tv size={16} className="text-pink-400" />}
+                        <div>
+                          <p className="text-white font-medium">{item.title}</p>
+                          <p className="text-slate-400 text-sm">
+                            {'duration_minutes' in item ? 'Movie' : 'TV Show'} • {item.release_year}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Selected Item Display */}
+            {selectedItem && (
+              <div className="text-center">
+                <p className="text-slate-300 mb-2">Selected item:</p>
+                <div className="flex justify-center">
+                  <div className="px-4 py-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-xl">
+                    <div className="flex items-center space-x-2">
+                      {'duration_minutes' in selectedItem ? <Film size={16} className="text-purple-400" /> : <Tv size={16} className="text-pink-400" />}
+                      <span className="text-purple-300 font-medium">{selectedItem.title}</span>
+                      <span className="text-slate-400">({selectedItem.release_year})</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={getItemRecommendations}
+                disabled={!selectedItem || loading}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                Get Recommendations
+              </button>
+              {selectedItem && (
+                <button
+                  onClick={() => {
+                    setSelectedItem(null);
+                    setSearchQuery('');
+                    setRecommendations([]);
+                    setHasSearched(false);
+                  }}
+                  className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl font-medium transition-all hover:bg-slate-600 hover:text-white"
+                >
+                  Clear Selection
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

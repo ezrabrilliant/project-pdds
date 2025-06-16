@@ -4,7 +4,7 @@ import { Calendar, Clock, Star, Globe, Shield, ArrowLeft } from 'lucide-react';
 import { apiService } from '../services/api';
 import { useTMDBPoster } from '../hooks/useTMDBPoster';
 import { useTMDBDetails } from '../hooks/useTMDBDetails';
-import RecommendationSlider from '../components/RecommendationSlider';
+import MovieSlider from '../components/MovieSlider';
 import CastSlider from '../components/CastSlider';
 import type { Movie } from '../services/api';
 
@@ -45,16 +45,15 @@ const MovieDetail: React.FC = () => {
                     genreArray = genres.split(',').map((g: string) => g.trim());
                 } else if (Array.isArray(genres)) {
                     genreArray = genres;
-                } if (genreArray.length > 0) {
-                    const recs = await apiService.getRecommendationsByGenres(
+                }                if (genreArray.length > 0) {                    const recs = await apiService.getRecommendationsByGenresLegacy(
                         genreArray.slice(0, 3),
                         'movies',
                         6
-                    );
-
-                    // Ensure recs is an array and filter out current movie
-                    const recsArray = Array.isArray(recs) ? recs : [];
-                    setRecommendations(recsArray.filter(rec => rec.show_id !== movieData.show_id) as Movie[]);
+                    );// Filter out current movie and ensure content type is movie
+                    const filteredRecs = recs.filter(rec => 
+                        rec.show_id !== movieData.show_id && 
+                        (rec as any).content_type === 'movie'                    ) as Movie[];
+                    setRecommendations(filteredRecs);
                 }
             } catch (error) {
                 console.error('Failed to fetch movie:', error);
@@ -135,20 +134,36 @@ const MovieDetail: React.FC = () => {
                             <h1 className="text-4xl font-bold text-white mb-2">{movie.title}</h1>
                             <p className="text-xl text-slate-300">Directed by {movie.director}</p>
                         </div>            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-center space-x-2 text-slate-300">
-                                <Calendar size={16} className="text-purple-400" />
-                                <span>Released: {movie.release_year}</span>
-                            </div>
-                            {(tmdbRuntime || movie.duration_minutes) && (
-                                <div className="flex items-center space-x-2 text-slate-300">
-                                    <Clock size={16} className="text-purple-400" />
-                                    <span>Duration: {tmdbRuntime || movie.duration_minutes} minutes</span>
-                                </div>
-                            )}
-                            <div className="flex items-center space-x-2 text-slate-300">
-                                <Star size={16} className="text-purple-400" />
-                                <span>Rating: {movie.rating}</span>
-                            </div>
+                <div className="flex items-center space-x-2 text-slate-300">
+                    <Calendar size={16} className="text-purple-400" />
+                    <span>Released: {movie.release_year}</span>
+                </div>
+                {(tmdbRuntime || movie.duration_minutes) && (
+                    <div className="flex items-center space-x-2 text-slate-300">
+                        <Clock size={16} className="text-purple-400" />
+                        <span>Duration: {(() => {
+                            const duration = tmdbRuntime || movie.duration_minutes;
+                            if (!duration) return 'Unknown';
+                            const hours = Math.floor(duration / 60);
+                            const minutes = duration % 60;
+                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                        })()}</span>
+                    </div>
+                )}
+                <div className="flex items-center space-x-2 text-slate-300">
+                    <Star size={16} className="text-purple-400" />
+                    <span>Rating: {movie.rating}</span>
+                </div>
+                {tmdbCertification && (
+                    <div className="flex items-center space-x-2 text-slate-300">
+                        <Shield size={16} className="text-purple-400" />
+                        <span>Certification: {tmdbCertification}</span>
+                    </div>
+                )}
+                <div className="flex items-center space-x-2 text-slate-300">
+                    <Globe size={16} className="text-purple-400" />
+                    <span>Country: {movie.country}</span>
+                </div>
                             <div className="flex items-center space-x-2 text-slate-300">
                                 <Globe size={16} className="text-purple-400" />
                                 <span>Country: {movie.country}</span>
@@ -210,11 +225,10 @@ const MovieDetail: React.FC = () => {
                         )}
                     </div>
                 </div>
-            </div>      {/* Recommendations */}
+            </div>            {/* Recommendations */}
             {recommendations.length > 0 && (
-                <RecommendationSlider
+                <MovieSlider
                     items={recommendations}
-                    type="movie"
                     title="Similar Movies"
                 />
             )}

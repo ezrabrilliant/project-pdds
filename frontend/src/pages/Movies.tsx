@@ -260,13 +260,13 @@ const Movies: React.FC = () => {
             <h2 className="text-2xl font-semibold text-white">
               {searchTerm || selectedGenre ? 'Search Results' : 'All Movies'} ({movies.length} items)
             </h2>
-          </div>          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+          </div>          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {movies.map((movie) => (
               <MovieCard
                 key={movie.show_id}
                 item={movie}
                 type="movie"
-                size="medium"
+                size="large"
               />
             ))}
           </div>
