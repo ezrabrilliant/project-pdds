@@ -1,10 +1,274 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Film, Search, Filter, Calendar, Clock, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiService } from '../services/api';
+import type { Movie, Genre } from '../services/api';
 
 const Movies: React.FC = () => {
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added'>('title');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {        const [moviesResponse, genresResponse] = await Promise.all([
+          apiService.getMovies({ page: currentPage, limit: 20 }),
+          apiService.getGenres()
+        ]);
+        
+        console.log('Movies response:', moviesResponse);
+        console.log('Genres response:', genresResponse);        // Handle response structure
+        const moviesData = moviesResponse as any;
+        const genresData = genresResponse as any;
+        
+        setMovies(moviesData.movies || []);
+        setTotalPages(moviesData.pagination?.totalPages || 1);
+        
+        // Ensure genres is always an array
+        const genresArray = genresData.genres || genresData || [];
+        setGenres(Array.isArray(genresArray) ? genresArray : []);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentPage]);
+  const handleSearch = async () => {
+    if (!searchTerm.trim() && !selectedGenre) return;
+
+    setLoading(true);
+    try {
+      // Use advanced search with search term
+      const response = await apiService.advancedSearch({
+        q: searchTerm.trim() || undefined,
+        genre: selectedGenre || undefined,
+        sortBy,
+        sortOrder: 'desc',
+        type: 'movies',
+        page: 1,
+        limit: 20
+      });
+      
+      console.log('Search response:', response);      // Handle response structure (now unwrapped by API service)
+      const searchData = response as any;
+      
+      setMovies(searchData.results?.movies || searchData.movies || []);
+      setCurrentPage(1);
+      setTotalPages(searchData.pagination?.totalPages || 1);
+    } catch (error) {
+      console.error('Search failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedGenre('');
+    setCurrentPage(1);
+    // Reload initial data
+    window.location.reload();
+  };
+  const renderMovieCard = (movie: Movie) => (
+    <Link
+      key={movie.show_id}
+      to={`/movies/${movie.show_id}`}
+      className="group bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105"
+    >
+      {/* Movie Poster Placeholder */}
+      <div className="aspect-[2/3] bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-lg mb-4 flex items-center justify-center border border-purple-500/20 group-hover:border-purple-500/40 transition-all duration-300">
+        <Film className="text-slate-400 group-hover:text-purple-400 transition-colors" size={32} />
+      </div>
+
+      {/* Movie Info */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
+          {movie.title}
+        </h3>
+        
+        <p className="text-slate-400 text-sm line-clamp-3">{movie.description}</p>
+        
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center space-x-1">
+            <Calendar size={12} />
+            <span>{movie.release_year}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <Clock size={12} />
+            <span>{movie.duration_minutes} min</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <Star size={12} />
+            <span>{movie.rating}</span>
+          </div>
+        </div>        {/* Genres */}
+        <div className="flex flex-wrap gap-1">
+          {(() => {
+            const genres = movie.genres as any;
+            if (typeof genres === 'string') {
+              return genres.split(',').slice(0, 2).map((genre: string, index: number) => (
+                <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
+                  {genre.trim()}
+                </span>
+              ));
+            } else if (Array.isArray(genres)) {
+              return genres.slice(0, 2).map((genre: string, index: number) => (
+                <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
+                  {genre}
+                </span>
+              ));
+            }
+            return null;
+          })()}
+          {(() => {
+            const genres = movie.genres as any;
+            const genreCount = typeof genres === 'string' ? genres.split(',').length : (Array.isArray(genres) ? genres.length : 0);
+            return genreCount > 2 && (
+              <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
+                +{genreCount - 2}
+              </span>
+            );
+          })()}
+        </div>
+      </div>
+    </Link>
+  );
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Movies</h1>
-      <p className="text-gray-400">Movies page - Coming soon...</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-3">
+          <Film size={40} className="text-purple-400" />
+          <span>Movies Collection</span>
+        </h1>
+        <p className="text-slate-300 text-lg">
+          Discover amazing movies from our extensive collection
+        </p>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
+        <div className="grid md:grid-cols-4 gap-4">
+          <div className="md:col-span-2 relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search movies..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            />
+          </div>
+
+          <select
+            value={selectedGenre}
+            onChange={(e) => setSelectedGenre(e.target.value)}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          >            <option value="">All Genres</option>
+            {Array.isArray(genres) && genres.map(genre => (
+              <option key={genre.id} value={genre.name}>{genre.name}</option>
+            ))}
+          </select>
+
+          <div className="flex space-x-2">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
+            >
+              {loading ? 'Searching...' : 'Search'}
+            </button>
+            <button
+              onClick={clearFilters}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors"
+            >
+              <Filter size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-16">
+          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading movies...</p>
+        </div>
+      )}
+
+      {/* Movies Grid */}
+      {!loading && movies.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold text-white">
+              {searchTerm || selectedGenre ? 'Search Results' : 'All Movies'} ({movies.length} items)
+            </h2>
+          </div>          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            {movies.map((movie) => renderMovieCard(movie))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-4">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center space-x-2 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
+              >
+                <ChevronLeft size={16} />
+                <span>Previous</span>
+              </button>
+
+              <div className="flex space-x-2">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + Math.max(1, currentPage - 2);
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        page === currentPage
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                          : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center space-x-2 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
+              >
+                <span>Next</span>
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No Results */}
+      {!loading && movies.length === 0 && (
+        <div className="text-center py-16">
+          <Film className="mx-auto text-slate-500 mb-4" size={48} />
+          <h3 className="text-xl font-semibold text-slate-400 mb-2">No movies found</h3>
+          <p className="text-slate-500">Try adjusting your search criteria</p>
+        </div>
+      )}
     </div>
   );
 };

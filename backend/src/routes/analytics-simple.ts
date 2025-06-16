@@ -4,6 +4,45 @@ import { APIResponse } from '../types';
 
 const router = Router();
 
+// Root analytics endpoint - returns comprehensive analytics
+router.get('/', async (req, res) => {
+  try {
+    // Get basic stats
+    const statsQuery = `
+      SELECT 
+        (SELECT COUNT(*) FROM movies) as total_movies,
+        (SELECT COUNT(*) FROM tv_shows) as total_tvshows,
+        (SELECT COUNT(*) FROM genres) as total_genres,
+        (SELECT COUNT(DISTINCT country) FROM movies WHERE country IS NOT NULL) as total_countries_movies,
+        (SELECT COUNT(DISTINCT country) FROM tv_shows WHERE country IS NOT NULL) as total_countries_tvshows
+    `;
+
+    const statsResult = await pgPool.query(statsQuery);
+    const stats = statsResult.rows[0];
+
+    const response: APIResponse<any> = {
+      success: true,
+      data: {
+        totalMovies: parseInt(stats.total_movies),
+        totalTVShows: parseInt(stats.total_tvshows),
+        totalGenres: parseInt(stats.total_genres),
+        totalCountries: parseInt(stats.total_countries_movies) + parseInt(stats.total_countries_tvshows),
+        totalContent: parseInt(stats.total_movies) + parseInt(stats.total_tvshows)
+      }
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch analytics',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Get basic statistics
 router.get('/stats', async (req, res) => {
   try {
