@@ -35,8 +35,8 @@ export interface TVShow {
 export interface Genre {
   id: number;
   name: string;
-  movies_count: number;
-  tv_shows_count: number;
+  movie_count: number;
+  tvshow_count: number;
   total_count: number;
 }
 
@@ -45,7 +45,8 @@ export interface SearchFilters {
   rating?: string;
   releaseYear?: number;
   country?: string;
-  sortBy?: 'title' | 'release_year' | 'date_added';
+  language?: string;
+  sortBy?: 'title' | 'release_year' | 'date_added' | 'rating';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -121,11 +122,28 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
   }
   async getTVShowById(id: string): Promise<TVShow> {
     return this.request<TVShow>(`/tvshows/${id}`);
-  }
-
-  // Genres
-  async getGenres(): Promise<Genre[]> {
-    return this.request<Genre[]>('/genres');
+  }  // Genres
+  async getGenres(options?: { hideTVShowOnly?: boolean; includeEmpty?: boolean }): Promise<Genre[]> {
+    const params = new URLSearchParams();
+    if (options?.hideTVShowOnly) {
+      params.append('hideTVShowOnly', 'true');
+    }
+    if (options?.includeEmpty) {
+      params.append('includeEmpty', 'true');
+    }
+    
+    const url = `/genres${params.toString() ? `?${params.toString()}` : ''}`;
+    const response = await this.request<any>(url);
+    
+    // Handle different response structures
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response && Array.isArray(response.genres)) {
+      return response.genres;
+    } else {
+      console.error('Unexpected genres response structure:', response);
+      return [];
+    }
   }
   // Search
   async searchMovies(filters: SearchFilters & PaginationParams): Promise<any> {
@@ -157,21 +175,24 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
     
     return this.request<any>(`/search?${params.toString()}`);
   }
-
   async advancedSearch(filters: SearchFilters & PaginationParams & { type: 'movies' | 'tvshows' | 'all', q?: string }): Promise<any> {
-    const params = new URLSearchParams();
-    if (filters.q) params.append('q', filters.q);
-    if (filters.genre) params.append('genre', filters.genre);
-    if (filters.rating) params.append('rating', filters.rating);
-    if (filters.releaseYear) params.append('releaseYear', filters.releaseYear.toString());
-    if (filters.country) params.append('country', filters.country);
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-    params.append('type', filters.type);
-    params.append('page', (filters.page || 1).toString());
-    params.append('limit', (filters.limit || 20).toString());
+    const requestBody: any = {
+      query: filters.q || '',
+      type: filters.type,
+      page: filters.page || 1,
+      limit: filters.limit || 20,
+      sortBy: filters.sortBy || 'date_added',
+      sortOrder: filters.sortOrder || 'desc'
+    };
+
+    // Add filters as arrays (backend expects arrays)
+    if (filters.genre) requestBody.genres = [filters.genre];
+    if (filters.rating) requestBody.ratings = [filters.rating];
+    if (filters.releaseYear) requestBody.years = [filters.releaseYear];
+    if (filters.country) requestBody.countries = [filters.country];
+    if (filters.language) requestBody.languages = [filters.language];
     
-    return this.request<any>(`/search?${params.toString()}`);
+    return this.postRequest<any>('/search/advanced', requestBody);
   }
   // Recommendations
   async getRecommendationsByGenres(genres: string[], type: 'movies' | 'tvshows' = 'movies', limit = 10): Promise<(Movie | TVShow)[]> {

@@ -166,23 +166,23 @@ router.get('/', async (req, res) => {
 router.post('/advanced', async (req, res) => {
   try {
     const {
-      query = '',
-      genres = [],
+      query = '',      genres = [],
       years = [],
       ratings = [],
       countries = [],
+      languages = [],
       type = 'all',
-      sortBy = 'popularity',
+      sortBy = 'date_added',
       sortOrder = 'desc',
       limit = 20,
       page = 1
     } = req.body;
 
     const offset = (Number(page) - 1) * Number(limit);
-    const validSorts = ['popularity', 'vote_average', 'release_year', 'title'];
+    const validSorts = ['date_added', 'popularity', 'vote_average', 'release_year', 'title', 'rating'];
     const validOrders = ['asc', 'desc'];
     
-    const sortField = validSorts.includes(sortBy) ? sortBy : 'popularity';
+    const sortField = validSorts.includes(sortBy) ? sortBy : 'date_added';
     const order = validOrders.includes(sortOrder) ? sortOrder : 'desc';
 
     let results: any = {};
@@ -218,12 +218,16 @@ router.post('/advanced', async (req, res) => {
         whereConditions.push(`m.rating = ANY($${paramIndex})`);
         queryParams.push(ratings);
         paramIndex++;
-      }
-
-      if (countries.length > 0) {
+      }      if (countries.length > 0) {
         const countryConditions = countries.map(() => `m.country ILIKE $${paramIndex++}`);
         whereConditions.push(`(${countryConditions.join(' OR ')})`);
         countries.forEach((country: string) => queryParams.push(`%${country}%`));
+      }
+
+      if (languages.length > 0) {
+        whereConditions.push(`m.language = ANY($${paramIndex})`);
+        queryParams.push(languages);
+        paramIndex++;
       }
 
       const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
@@ -242,26 +246,108 @@ router.post('/advanced', async (req, res) => {
         GROUP BY m.show_id
         ORDER BY m.${sortField} ${order.toUpperCase()}
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
-
-      queryParams.push(Number(limit), offset);
+      `;      queryParams.push(Number(limit), offset);
       const moviesResult = await pgPool.query(moviesQuery, queryParams);
       results.movies = moviesResult.rows;
     }
 
-    // Similar logic for TV shows would go here...
-    // (I'll implement if needed, keeping response shorter for now)
+    // TV Shows implementation for advanced search
+    if (type === 'tvshows' || type === 'all') {
+      let whereConditions: string[] = [];
+      let queryParams: any[] = [];
+      let paramIndex = 1;
+
+      if (query && query.trim()) {
+        whereConditions.push(`(t.title ILIKE $${paramIndex} OR t.description ILIKE $${paramIndex})`);
+        queryParams.push(`%${query.trim()}%`);
+        paramIndex++;
+      }
+
+      if (genres.length > 0) {
+        whereConditions.push(`EXISTS (
+          SELECT 1 FROM tvshow_genres tg2 
+          JOIN genres g2 ON tg2.genre_id = g2.id 
+          WHERE tg2.tvshow_id = t.show_id AND g2.name = ANY($${paramIndex})
+        )`);
+        queryParams.push(genres);
+        paramIndex++;
+      }
+
+      if (years.length > 0) {
+        whereConditions.push(`t.release_year = ANY($${paramIndex})`);
+        queryParams.push(years);
+        paramIndex++;
+      }
+
+      if (ratings.length > 0) {
+        whereConditions.push(`t.rating = ANY($${paramIndex})`);
+        queryParams.push(ratings);
+        paramIndex++;
+      }
+
+      if (countries.length > 0) {
+        const countryConditions = countries.map(() => `t.country ILIKE $${paramIndex++}`);
+        whereConditions.push(`(${countryConditions.join(' OR ')})`);
+        countries.forEach((country: string) => queryParams.push(`%${country}%`));
+      }
+
+      if (languages.length > 0) {
+        whereConditions.push(`t.language = ANY($${paramIndex})`);
+        queryParams.push(languages);
+        paramIndex++;
+      }
+
+      const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+      const tvShowsQuery = `
+        SELECT 
+          t.*,
+          COALESCE(
+            string_agg(DISTINCT g.name, ', ' ORDER BY g.name), 
+            'Unknown'
+          ) as genres
+        FROM tv_shows t
+        LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+        LEFT JOIN genres g ON tg.genre_id = g.id
+        ${whereClause}
+        GROUP BY t.show_id
+        ORDER BY t.${sortField} ${order.toUpperCase()}
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+
+      queryParams.push(Number(limit), offset);
+      const tvShowsResult = await pgPool.query(tvShowsQuery, queryParams);
+      results.tvShows = tvShowsResult.rows;
+    }
+
+    // Combined results for 'all' type
+    if (type === 'all') {
+      const combinedResults = [...(results.movies || []), ...(results.tvShows || [])];
+      // Sort combined results by the specified field
+      combinedResults.sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+        
+        if (order === 'desc') {
+          return bValue > aValue ? 1 : bValue < aValue ? -1 : 0;
+        } else {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        }
+      });
+      
+      results.combined = combinedResults.slice(0, Number(limit));
+    }
 
     const response: APIResponse<any> = {
       success: true,
       data: {
-        results,
-        filters: {
+        results,        filters: {
           query,
           genres,
           years,
           ratings,
           countries,
+          languages,
           type,
           sortBy: sortField,
           sortOrder: order

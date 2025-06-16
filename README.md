@@ -117,7 +117,21 @@ netflix-recommendation-hub/
 - `GET /api/movies` - Get movies with pagination/filtering
 - `GET /api/movies/:id` - Get movie by ID
 - `GET /api/tvshows` - Get TV shows with pagination/filtering
+- `GET /api/genres` - Get all genres with content counts
+- `GET /api/genres?hideTVShowOnly=true` - Hide genres with only TV shows
+- `GET /api/genres?includeEmpty=true` - Include genres with no content
+- `GET /api/genres/:id` - Get genre by ID with associated content
+- `POST /api/search` - Advanced search with filters and sorting
 - `GET /api/recommendations` - Get content recommendations
+
+#### Advanced Search Filters
+- **genre**: Filter by genre name
+- **rating**: Filter by content rating (G, PG, PG-13, etc.)
+- **releaseYear**: Filter by release year
+- **country**: Filter by country
+- **language**: Filter by language
+- **sortBy**: Sort by title, release_year, date_added, or rating
+- **sortOrder**: Sort order (asc or desc)
 
 ## 🎨 Features Overview
 
@@ -131,13 +145,25 @@ netflix-recommendation-hub/
 - Cosine similarity calculations
 - Confidence scoring for recommendations
 
-### 3. Analytics Dashboard
+### 3. Genre Management System
+- **Smart Genre Splitting**: Automatically splits combined genres (e.g., "Action & Adventure" → "Action", "Adventure")
+- **Genre Merging**: Combines similar genres (e.g., "Sci-Fi" merged with "Science Fiction")
+- **TV-Only Filter**: Option to hide genres that only contain TV shows
+- **Consistent Genre Distribution**: Ensures genre consistency across movies and TV shows
+
+### 4. Advanced Search & Filtering
+- Multi-criteria search with complex filtering
+- Language-based filtering
+- Sorting by multiple parameters (title, year, rating, date added)
+- Real-time search with debouncing
+
+### 5. Analytics Dashboard
 - Content distribution by genre
 - Rating analysis
 - Data quality insights
 - Country-wise content breakdown
 
-### 4. Data Quality Management
+### 6. Data Quality Management
 - Missing data handling
 - Confidence scoring
 - Smart fallback mechanisms

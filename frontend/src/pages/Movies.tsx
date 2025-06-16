@@ -14,7 +14,8 @@ const Movies: React.FC = () => {
   const [selectedRating, setSelectedRating] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added'>('title');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added' | 'rating'>('date_added');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
@@ -44,36 +45,36 @@ const Movies: React.FC = () => {
 
     fetchData();
   }, [currentPage]);  const handleSearch = async () => {
-    if (!searchTerm.trim() && !selectedGenre && !selectedRating && !selectedYear && !selectedCountry) {
-      // If no filters, reload initial data
-      try {
-        const moviesResponse = await apiService.getMovies({ page: 1, limit: 20 });
+    setLoading(true);
+    try {      // Check if we have any search criteria
+      const hasSearchCriteria = searchTerm.trim() || selectedGenre || selectedRating || selectedYear || selectedCountry || selectedLanguage;
+      
+      if (!hasSearchCriteria) {        // If no search criteria, just apply sort to all movies
+        const moviesResponse = await apiService.getMovies({ 
+          page: 1, 
+          limit: 20
+        } as any);
         const moviesData = moviesResponse as any;
         setMovies(moviesData.movies || []);
         setCurrentPage(1);
         setTotalPages(moviesData.pagination?.totalPages || 1);
-      } catch (error) {
-        console.error('Failed to reload movies:', error);
+        setLoading(false);
+        return;
       }
-      return;
-    }
 
-    setLoading(true);
-    try {
-      // Use advanced search with all filters
+      // Use advanced search with filters
       const searchParams: any = {
         type: 'movies',
         page: 1,
         limit: 20,
         sortBy,
         sortOrder: 'desc'
-      };
-
-      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
+      };      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
       if (selectedGenre) searchParams.genre = selectedGenre;
       if (selectedRating) searchParams.rating = selectedRating;
       if (selectedYear) searchParams.releaseYear = parseInt(selectedYear);
       if (selectedCountry) searchParams.country = selectedCountry;
+      if (selectedLanguage) searchParams.language = selectedLanguage;
 
       const response = await apiService.advancedSearch(searchParams);
       
@@ -90,13 +91,13 @@ const Movies: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const clearFilters = () => {
+  };  const clearFilters = () => {
     setSearchTerm('');
     setSelectedGenre('');
     setSelectedRating('');
     setSelectedYear('');
     setSelectedCountry('');
+    setSelectedLanguage('');
     setCurrentPage(1);
     // Reload initial data
     handleSearch();
@@ -116,12 +117,12 @@ const Movies: React.FC = () => {
       </div>      {/* Search and Filters */}
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
         {/* Main search row */}
-        <div className="grid md:grid-cols-4 gap-4 mb-4">
+        <div className="grid md:grid-cols-5 gap-4 mb-4">
           <div className="md:col-span-2 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input
               type="text"
-              placeholder="Search movies..."
+              placeholder="Search movies... (optional)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
@@ -140,6 +141,19 @@ const Movies: React.FC = () => {
             ))}
           </select>
 
+          <select
+            value={sortBy}            onChange={(e) => {
+              setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'rating');
+              // Auto-apply sort when changed
+              setTimeout(() => handleSearch(), 100);
+            }}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          >            <option value="date_added">Sort by Date Added (Latest)</option>
+            <option value="title">Sort by Title A-Z</option>
+            <option value="release_year">Sort by Year (Newest)</option>
+            <option value="rating">Sort by Rating</option>
+          </select>
+
           <div className="flex space-x-2">
             <button
               onClick={handleSearch}
@@ -147,60 +161,86 @@ const Movies: React.FC = () => {
               className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
             >
               {loading ? 'Searching...' : 'Search'}
-            </button>
-            <button
+            </button>            <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors"
+              className={`px-4 py-3 border rounded-xl transition-all flex items-center space-x-2 ${
+                showAdvancedFilters 
+                  ? 'bg-purple-600/20 border-purple-500/50 text-purple-300' 
+                  : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:text-white hover:bg-slate-600/50'
+              }`}
             >
               <Filter size={16} />
+              <span>Advanced</span>
             </button>
           </div>
-        </div>
-
-        {/* Advanced Filters */}
+        </div>        {/* Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="grid md:grid-cols-4 gap-4 pt-4 border-t border-slate-600/50">
-            <select
-              value={selectedRating}
-              onChange={(e) => setSelectedRating(e.target.value)}
-              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            >
-              <option value="">All Ratings</option>
-              <option value="G">G</option>
-              <option value="PG">PG</option>
-              <option value="PG-13">PG-13</option>
-              <option value="R">R</option>
-              <option value="NC-17">NC-17</option>
-            </select>
+          <div className="pt-4 border-t border-slate-600/50">
+            <div className="grid md:grid-cols-5 gap-4 mb-4">
+              <select
+                value={selectedRating}
+                onChange={(e) => setSelectedRating(e.target.value)}
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Ratings</option>
+                <option value="G">G</option>
+                <option value="PG">PG</option>
+                <option value="PG-13">PG-13</option>
+                <option value="R">R</option>
+                <option value="NC-17">NC-17</option>
+              </select>
 
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            >
-              <option value="">All Years</option>
-              {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Years</option>
+                {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'title' | 'release_year' | 'date_added')}
-              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            >
-              <option value="title">Sort by Title</option>
-              <option value="release_year">Sort by Year</option>
-              <option value="date_added">Sort by Date Added</option>
-            </select>
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Languages</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="zh">Chinese</option>
+                <option value="hi">Hindi</option>
+                <option value="ar">Arabic</option>
+              </select>
 
-            <button
-              onClick={clearFilters}
-              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors flex items-center justify-center space-x-2"
-            >
-              <X size={16} />
-              <span>Clear Filters</span>
-            </button>
+              <div className="md:col-span-2 flex space-x-2">
+                <button
+                  onClick={clearFilters}
+                  className="flex-1 px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <X size={16} />
+                  <span>Clear</span>
+                </button>
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Applying...' : 'Apply'}
+                </button>
+              </div>
+            </div>
+            <div className="text-sm text-slate-400 text-center">
+              Use filters and sorting even without a search query to browse movies
+            </div>
           </div>
         )}
       </div>

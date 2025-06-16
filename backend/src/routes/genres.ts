@@ -7,29 +7,64 @@ const router = Router();
 // Get all genres with content counts
 router.get('/', async (req, res) => {
   try {
+    // Get all genres and their counts
     const query = `
       SELECT 
         g.id,
         g.name,
-        (SELECT COUNT(*) FROM movie_genres mg WHERE mg.genre_id = g.id) as movie_count,
-        (SELECT COUNT(*) FROM tvshow_genres tg WHERE tg.genre_id = g.id) as tvshow_count
+        COALESCE((SELECT COUNT(*) FROM movie_genres mg WHERE mg.genre_id = g.id), 0) as movie_count,
+        COALESCE((SELECT COUNT(*) FROM tvshow_genres tg WHERE tg.genre_id = g.id), 0) as tvshow_count
       FROM genres g
       ORDER BY g.name ASC
     `;
 
     const result = await pgPool.query(query);
 
-    // Calculate totals after fetching
-    const genresWithTotals = result.rows.map(genre => ({
-      ...genre,
-      total_count: parseInt(genre.movie_count) + parseInt(genre.tvshow_count)
+    // Calculate totals and filter out empty genres unless requested
+    const { includeEmpty = false, hideTVShowOnly = false } = req.query;
+    
+    let genresWithTotals = result.rows.map(genre => ({
+      id: genre.id,
+      name: genre.name,
+      movie_count: parseInt(genre.movie_count) || 0,
+      tvshow_count: parseInt(genre.tvshow_count) || 0,
+      total_count: (parseInt(genre.movie_count) || 0) + (parseInt(genre.tvshow_count) || 0)
     }));
+
+    // Filter out empty genres unless explicitly requested
+    if (!includeEmpty) {
+      genresWithTotals = genresWithTotals.filter(genre => genre.total_count > 0);
+    }
+
+    // Filter out TV show only genres if requested
+    if (hideTVShowOnly === 'true') {
+      genresWithTotals = genresWithTotals.filter(genre => genre.movie_count > 0);
+    }
+
+    // Sort by total count descending, then by name
+    genresWithTotals.sort((a, b) => {
+      if (b.total_count !== a.total_count) {
+        return b.total_count - a.total_count;
+      }
+      return a.name.localeCompare(b.name);
+    });
 
     const response: APIResponse<any> = {
       success: true,
       data: {
         genres: genresWithTotals,
-        total: genresWithTotals.length
+        total: genresWithTotals.length,
+        stats: {
+          totalGenres: result.rows.length,
+          genresWithContent: genresWithTotals.length,
+          emptyGenres: result.rows.length - genresWithTotals.length,
+          genresWithMovies: genresWithTotals.filter(g => g.movie_count > 0).length,
+          genresWithTVShowsOnly: genresWithTotals.filter(g => g.movie_count === 0 && g.tvshow_count > 0).length,
+          filters: {
+            includeEmpty: includeEmpty === 'true',
+            hideTVShowOnly: hideTVShowOnly === 'true'
+          }
+        }
       }
     };
 

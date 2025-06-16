@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tv, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Tv, Search, Filter, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
 import { apiService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import type { TVShow, Genre } from '../services/api';
@@ -7,11 +7,14 @@ import type { TVShow, Genre } from '../services/api';
 const TVShows: React.FC = () => {
   const [tvShows, setTVShows] = useState<TVShow[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('');  const [selectedRating, setSelectedRating] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added' | 'rating'>('date_added');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,27 +43,45 @@ const TVShows: React.FC = () => {
     };
 
     fetchData();
-  }, [currentPage]);
-  const handleSearch = async () => {
-    if (!searchTerm.trim() && !selectedGenre) return;
-
+  }, [currentPage]);  const handleSearch = async () => {
     setLoading(true);
     try {
-      // Use advanced search with search term
-      const response = await apiService.advancedSearch({
-        q: searchTerm.trim() || undefined,
-        genre: selectedGenre || undefined,
-        sortBy: 'title',
-        sortOrder: 'desc',
+      // Check if we have any search criteria
+      const hasSearchCriteria = searchTerm.trim() || selectedGenre || selectedRating || selectedYear || selectedLanguage;
+      
+      if (!hasSearchCriteria) {
+        // If no search criteria, just apply sort to all TV shows
+        const tvShowsResponse = await apiService.getTVShows({ 
+          page: 1, 
+          limit: 20
+        } as any);
+        const tvShowsData = tvShowsResponse as any;
+        setTVShows(tvShowsData.tvShows || []);
+        setCurrentPage(1);
+        setTotalPages(tvShowsData.pagination?.totalPages || 1);
+        setLoading(false);
+        return;
+      }
+
+      // Use advanced search with filters
+      const searchParams: any = {
         type: 'tvshows',
         page: 1,
-        limit: 20
-      });
+        limit: 20,
+        sortBy,
+        sortOrder: 'desc'
+      };      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
+      if (selectedGenre) searchParams.genre = selectedGenre;
+      if (selectedRating) searchParams.rating = selectedRating;
+      if (selectedYear) searchParams.releaseYear = parseInt(selectedYear);
+      if (selectedLanguage) searchParams.language = selectedLanguage;
+
+      const response = await apiService.advancedSearch(searchParams);
       
       console.log('Search response:', response);
       
-      // Handle wrapped response structure
-      const searchData = (response as any).data || response;
+      // Handle response structure (now unwrapped by API service)
+      const searchData = response as any;
       
       setTVShows(searchData.results?.tvShows || searchData.results?.tvshows || searchData.tvShows || []);
       setCurrentPage(1);
@@ -70,14 +91,16 @@ const TVShows: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const clearFilters = () => {
+  };  const clearFilters = () => {
     setSearchTerm('');
     setSelectedGenre('');
+    setSelectedRating('');
+    setSelectedYear('');
+    setSelectedLanguage('');
     setCurrentPage(1);
     // Reload initial data
-    window.location.reload();  };
+    handleSearch();
+  };
 
   return (
     <div className="space-y-8">
@@ -90,16 +113,15 @@ const TVShows: React.FC = () => {
         <p className="text-slate-300 text-lg">
           Explore incredible TV series from around the world
         </p>
-      </div>
-
-      {/* Search and Filters */}
+      </div>      {/* Search and Filters */}
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
-        <div className="grid md:grid-cols-4 gap-4">
+        {/* Main search row */}
+        <div className="grid md:grid-cols-5 gap-4 mb-4">
           <div className="md:col-span-2 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input
               type="text"
-              placeholder="Search TV shows..."
+              placeholder="Search TV shows... (optional)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
@@ -111,10 +133,24 @@ const TVShows: React.FC = () => {
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
             className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-          >            <option value="">All Genres</option>
+          >
+            <option value="">All Genres</option>
             {Array.isArray(genres) && genres.map(genre => (
               <option key={genre.id} value={genre.name}>{genre.name}</option>
             ))}
+          </select>
+
+          <select
+            value={sortBy}            onChange={(e) => {
+              setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'rating');
+              // Auto-apply sort when changed
+              setTimeout(() => handleSearch(), 100);
+            }}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          >            <option value="date_added">Sort by Date Added (Latest)</option>
+            <option value="title">Sort by Title A-Z</option>
+            <option value="release_year">Sort by Year (Newest)</option>
+            <option value="rating">Sort by Rating</option>
           </select>
 
           <div className="flex space-x-2">
@@ -125,14 +161,90 @@ const TVShows: React.FC = () => {
             >
               {loading ? 'Searching...' : 'Search'}
             </button>
+            
             <button
-              onClick={clearFilters}
-              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`px-4 py-3 border rounded-xl transition-all flex items-center space-x-2 ${
+                showAdvancedFilters 
+                  ? 'bg-purple-600/20 border-purple-500/50 text-purple-300' 
+                  : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:text-white hover:bg-slate-600/50'
+              }`}
             >
               <Filter size={16} />
+              <span>Advanced</span>
             </button>
           </div>
-        </div>
+        </div>        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <div className="pt-4 border-t border-slate-600/50">
+            <div className="grid md:grid-cols-5 gap-4 mb-4">
+              <select
+                value={selectedRating}
+                onChange={(e) => setSelectedRating(e.target.value)}
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Ratings</option>
+                <option value="TV-Y">TV-Y</option>
+                <option value="TV-Y7">TV-Y7</option>
+                <option value="TV-G">TV-G</option>
+                <option value="TV-PG">TV-PG</option>
+                <option value="TV-14">TV-14</option>
+                <option value="TV-MA">TV-MA</option>
+              </select>
+
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Years</option>
+                {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Languages</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="zh">Chinese</option>
+                <option value="hi">Hindi</option>
+                <option value="ar">Arabic</option>
+              </select>
+
+              <div className="md:col-span-2 flex space-x-2">
+                <button
+                  onClick={clearFilters}
+                  className="flex-1 px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-slate-300 hover:text-white hover:bg-slate-600/50 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <X size={16} />
+                  <span>Clear</span>
+                </button>
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Applying...' : 'Apply'}
+                </button>
+              </div>
+            </div>
+            <div className="text-sm text-slate-400 text-center">
+              Use filters and sorting even without a search query to browse TV shows
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Loading */}

@@ -15,15 +15,15 @@ router.get('/', async (req, res) => {
       rating,
       country,
       search,
-      sort = 'popularity',
+      sort = 'date_added',
       order = 'desc'
     } = req.query;
 
     const offset = (Number(page) - 1) * Number(limit);
-    const validSorts = ['popularity', 'vote_average', 'release_year', 'title'];
+    const validSorts = ['date_added', 'popularity', 'vote_average', 'release_year', 'title', 'rating'];
     const validOrders = ['asc', 'desc'];
     
-    const sortField = validSorts.includes(sort as string) ? sort : 'popularity';
+    const sortField = validSorts.includes(sort as string) ? sort : 'date_added';
     const sortOrder = validOrders.includes(order as string) ? order : 'desc';
 
     // Build WHERE conditions

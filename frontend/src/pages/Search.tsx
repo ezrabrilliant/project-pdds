@@ -36,22 +36,28 @@ const Search: React.FC = () => {
         handleSearch();
       }, 100);
     }
-  }, []);const handleSearch = async (page = 1) => {
-    // Require either search query or filters to perform search
-    if (!searchQuery.trim()) {
-      console.warn('Search query is required');
+  }, []);  const handleSearch = async (page = 1) => {
+    // Allow search with just filters (without requiring search query)
+    if (!searchQuery.trim() && Object.keys(filters).length === 0) {
+      console.warn('Search query or filters are required');
       return;
-    }
-
-    setLoading(true);
+    }    setLoading(true);
     try {
-      const searchParams = {
+      const searchParams: any = {
         ...filters,
-        q: searchQuery.trim(), // Add the search query
         page,
         limit: 20,
         type: searchType
-      };      const response = await apiService.advancedSearch(searchParams);
+      };
+
+      // Only add query if it exists
+      if (searchQuery.trim()) {
+        searchParams.q = searchQuery.trim();
+      }
+
+      console.log('Search params being sent:', searchParams);
+
+      const response = await apiService.advancedSearch(searchParams);
       
       // Response sudah di-unwrap oleh apiService.request(), jadi response langsung berisi data
       // Handle different search types
@@ -170,13 +176,12 @@ const Search: React.FC = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">        <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input
               type="text"
-              placeholder="Search movies and TV shows..."
+              placeholder="Search movies and TV shows... (optional)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
@@ -194,12 +199,27 @@ const Search: React.FC = () => {
             <option value="tvshows">TV Shows Only</option>
           </select>
 
+          <select
+            value={filters.sortBy || ''}
+            onChange={(e) => updateFilter('sortBy', e.target.value)}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          >            <option value="">Sort by Date Added (Latest)</option>
+            <option value="title">Sort by Title A-Z</option>
+            <option value="release_year">Sort by Year (Newest)</option>
+            <option value="date_added">Sort by Date Added</option>
+            <option value="rating">Sort by Rating</option>
+          </select>
+
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-6 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white hover:bg-slate-600/50 transition-colors flex items-center space-x-2"
+            className={`px-6 py-3 border rounded-xl transition-all flex items-center space-x-2 ${
+              showFilters 
+                ? 'bg-purple-600/20 border-purple-500/50 text-purple-300' 
+                : 'bg-slate-700/50 border-slate-600 text-white hover:bg-slate-600/50'
+            }`}
           >
             <Filter size={16} />
-            <span>Filters</span>
+            <span>More Filters</span>
             <ChevronDown className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} size={16} />
           </button>
 
@@ -258,27 +278,48 @@ const Search: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Sort By</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Language</label>
               <select
-                value={filters.sortBy || ''}
-                onChange={(e) => updateFilter('sortBy', e.target.value)}
+                value={filters.language || ''}
+                onChange={(e) => updateFilter('language', e.target.value)}
                 className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
               >
-                <option value="">Relevance</option>
-                <option value="title">Title</option>
-                <option value="release_year">Release Year</option>
-                <option value="date_added">Date Added</option>
+                <option value="">All Languages</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="zh">Chinese</option>
+                <option value="hi">Hindi</option>
+                <option value="ar">Arabic</option>
               </select>
             </div>
 
-            <div className="lg:col-span-4 flex justify-end space-x-4">
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 text-slate-400 hover:text-white transition-colors flex items-center space-x-2"
-              >
-                <X size={16} />
-                <span>Clear Filters</span>
-              </button>
+            <div className="lg:col-span-4 flex justify-between items-center pt-4">
+              <div className="text-sm text-slate-400">
+                Use filters to narrow down results even without a search query
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-slate-400 hover:text-white transition-colors flex items-center space-x-2"
+                >
+                  <X size={16} />
+                  <span>Clear Filters</span>
+                </button>
+                <button
+                  onClick={() => handleSearch()}
+                  disabled={loading}
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Applying...' : 'Apply Filters'}
+                </button>
+              </div>
             </div>
           </div>
         )}
