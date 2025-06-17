@@ -255,7 +255,20 @@ router.post('/advanced', async (req, res) => {
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;      queryParams.push(Number(limit), offset);
       const moviesResult = await pgPool.query(moviesQuery, queryParams);
+      
+      // Get total count for pagination
+      const countQuery = `
+        SELECT COUNT(DISTINCT m.show_id) as total
+        FROM movies m
+        LEFT JOIN movie_genres mg ON m.show_id = mg.movie_id
+        LEFT JOIN genres g ON mg.genre_id = g.id
+        ${whereClause}
+      `;
+      const countParams = queryParams.slice(0, -2); // Remove limit and offset
+      const countResult = await pgPool.query(countQuery, countParams);
+      
       results.movies = moviesResult.rows;
+      results.moviesTotal = parseInt(countResult.rows[0].total);
     }
 
     // TV Shows implementation for advanced search
@@ -326,11 +339,22 @@ router.post('/advanced', async (req, res) => {
         GROUP BY t.show_id
         ORDER BY t.${sortField} ${order.toUpperCase()}
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
-
-      queryParams.push(Number(limit), offset);
+      `;      queryParams.push(Number(limit), offset);
       const tvShowsResult = await pgPool.query(tvShowsQuery, queryParams);
+      
+      // Get total count for pagination
+      const countQuery = `
+        SELECT COUNT(DISTINCT t.show_id) as total
+        FROM tv_shows t
+        LEFT JOIN tvshow_genres tg ON t.show_id = tg.tvshow_id
+        LEFT JOIN genres g ON tg.genre_id = g.id
+        ${whereClause}
+      `;
+      const countParams = queryParams.slice(0, -2); // Remove limit and offset
+      const countResult = await pgPool.query(countQuery, countParams);
+      
       results.tvShows = tvShowsResult.rows;
+      results.tvShowsTotal = parseInt(countResult.rows[0].total);
     }
 
     // Combined results for 'all' type
@@ -349,7 +373,17 @@ router.post('/advanced', async (req, res) => {
       });
       
       results.combined = combinedResults.slice(0, Number(limit));
+    }    // Calculate pagination info
+    let totalItems = 0;
+    if (type === 'movies') {
+      totalItems = results.moviesTotal || 0;
+    } else if (type === 'tvshows') {
+      totalItems = results.tvShowsTotal || 0;
+    } else if (type === 'all') {
+      totalItems = (results.moviesTotal || 0) + (results.tvShowsTotal || 0);
     }
+    
+    const totalPages = Math.ceil(totalItems / Number(limit));
 
     const response: APIResponse<any> = {
       success: true,
@@ -367,7 +401,9 @@ router.post('/advanced', async (req, res) => {
         },
         pagination: {
           page: Number(page),
-          limit: Number(limit)
+          limit: Number(limit),
+          totalItems,
+          totalPages
         }
       }
     };

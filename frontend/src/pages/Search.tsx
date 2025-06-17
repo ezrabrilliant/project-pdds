@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, Filter, X, ChevronDown } from 'lucide-react';
 import { apiService } from '../services/api';
+import MovieCard from '../components/MovieCard';
 import type { Movie, TVShow, Genre, SearchFilters } from '../services/api';
 
 const Search: React.FC = () => {
@@ -137,72 +138,16 @@ const Search: React.FC = () => {
     setFilters({});
     setSearchQuery('');
     setResults([]);
-  };
-  const renderContentCard = (item: Movie | TVShow) => {
-    const isMovie = 'duration_minutes' in item;
+  };  const renderContentCard = (item: Movie | TVShow) => {
+    const type = 'duration_minutes' in item ? 'movie' : 'tvshow';
     
     return (
-      <div key={item.show_id} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-semibold text-white line-clamp-2">{item.title}</h3>
-          <span className="px-3 py-1 bg-purple-600/20 rounded-full text-xs text-purple-300 font-medium">
-            {isMovie ? 'Movie' : 'TV Show'}
-          </span>
-        </div>
-        
-        <p className="text-slate-400 text-sm mb-4 line-clamp-3">{item.description}</p>
-        
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Year:</span>
-            <span className="text-white">{item.release_year}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Rating:</span>
-            <span className="text-white">{item.rating}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Duration:</span>
-            <span className="text-white">
-              {isMovie ? `${item.duration_minutes} min` : item.duration}
-            </span>
-          </div>
-        </div>
-          <div className="mt-4">
-          <div className="flex flex-wrap gap-1">
-            {(() => {
-              const genres = item.genres as any;
-              let genreArray: string[] = [];
-              if (typeof genres === 'string') {
-                genreArray = genres.split(',').map((g: string) => g.trim());
-              } else if (Array.isArray(genres)) {
-                genreArray = genres;
-              }
-              
-              return genreArray.slice(0, 3).map((genre: string, index: number) => (
-                <span key={index} className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                  {genre}
-                </span>
-              ));
-            })()}
-            {(() => {
-              const genres = item.genres as any;
-              let genreArray: string[] = [];
-              if (typeof genres === 'string') {
-                genreArray = genres.split(',').map((g: string) => g.trim());
-              } else if (Array.isArray(genres)) {
-                genreArray = genres;
-              }
-              
-              return genreArray.length > 3 ? (
-                <span className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300">
-                  +{genreArray.length - 3}
-                </span>
-              ) : null;
-            })()}
-          </div>
-        </div>
-      </div>
+      <MovieCard 
+        key={item.show_id} 
+        item={item} 
+        type={type}
+        size="medium"
+      />
     );
   };
 
@@ -211,7 +156,7 @@ const Search: React.FC = () => {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Smart Search
+          Search
         </h1>
         <p className="text-slate-300 text-lg">
           Find your perfect movie or TV show with advanced filtering
@@ -249,7 +194,6 @@ const Search: React.FC = () => {
             <option value="title">Sort by Title (A-Z)</option>
             <option value="release_year">Sort by Year (Newest First)</option>
             <option value="date_added">Sort by Date Added (Latest)</option>
-            <option value="vote_average">Sort by Rating (Highest First)</option>
             <option value="popularity">Sort by Popularity (Most Popular)</option>
           </select>
 

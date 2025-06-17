@@ -23,7 +23,6 @@ export const fixes = {
       { value: 'date_added', label: 'Date Added (Latest)' },
       { value: 'title', label: 'Title A-Z' },
       { value: 'release_year', label: 'Year (Newest)' },
-      { value: 'vote_average', label: 'Rating (Highest)' },
       { value: 'popularity', label: 'Popularity' }
     ],
     

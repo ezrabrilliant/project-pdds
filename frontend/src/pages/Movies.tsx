@@ -14,8 +14,9 @@ const Movies: React.FC = () => {
   const [selectedRating, setSelectedRating] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('');  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity'>('date_added');
+  const [selectedLanguage, setSelectedLanguage] = useState('');  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity'>('popularity');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<any>(null); // Track active search filters
 
   // Helper function to determine sort order based on field
   const getSortOrder = (sortField: string): 'asc' | 'desc' => {
@@ -27,24 +28,29 @@ const Movies: React.FC = () => {
       case 'popularity': return 'desc'; // Most popular first
       default: return 'desc';
     }
-  };
-  useEffect(() => {
+  };  useEffect(() => {
     const fetchData = async () => {
       try {
+        let searchParams: any = {
+          type: 'movies',
+          page: currentPage,
+          limit: 20,
+          sortBy,
+          sortOrder: getSortOrder(sortBy)
+        };
+
+        // If we have active filters, use them
+        if (activeFilters) {
+          searchParams = { ...searchParams, ...activeFilters, page: currentPage };
+        }
+
         // Always use advanced search to ensure sorting is applied
         const [moviesResponse, genresResponse] = await Promise.all([
-          apiService.advancedSearch({
-            type: 'movies',
-            page: currentPage,
-            limit: 20,
-            sortBy,
-            sortOrder: getSortOrder(sortBy)
-          }),
-          apiService.getGenres()
+          apiService.advancedSearch(searchParams),
+          currentPage === 1 ? apiService.getGenres() : Promise.resolve({ genres: genres })
         ]);
         
         console.log('Movies response:', moviesResponse);
-        console.log('Genres response:', genresResponse);
 
         // Handle response structure
         const moviesData = moviesResponse as any;
@@ -53,9 +59,11 @@ const Movies: React.FC = () => {
         setMovies(moviesData.results?.movies || moviesData.movies || []);
         setTotalPages(moviesData.pagination?.totalPages || 1);
         
-        // Ensure genres is always an array
-        const genresArray = genresData.genres || genresData || [];
-        setGenres(Array.isArray(genresArray) ? genresArray : []);
+        // Only update genres on first page load
+        if (currentPage === 1) {
+          const genresArray = genresData.genres || genresData || [];
+          setGenres(Array.isArray(genresArray) ? genresArray : []);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
@@ -64,62 +72,41 @@ const Movies: React.FC = () => {
     };
 
     fetchData();
-  }, [currentPage, sortBy]);const handleSearch = async () => {
+  }, [currentPage, sortBy, activeFilters]);const handleSearch = async () => {
     setLoading(true);
     try {      // Check if we have any search criteria
       const hasSearchCriteria = searchTerm.trim() || selectedGenre || selectedRating || selectedYear || selectedCountry || selectedLanguage;
-        if (!hasSearchCriteria) {
-        // If no search criteria, use advanced search with just sorting
-        const searchParams: any = {
-          type: 'movies',
-          page: 1,
-          limit: 20,
-          sortBy,
-          sortOrder: getSortOrder(sortBy)
-        };
-
-        const response = await apiService.advancedSearch(searchParams);
-        const searchData = response as any;
-        setMovies(searchData.results?.movies || searchData.movies || []);
-        setCurrentPage(1);
-        setTotalPages(searchData.pagination?.totalPages || 1);
-        setLoading(false);
-        return;
-      }
-
-      // Use advanced search with filters
-      const searchParams: any = {
+        
+      let searchParams: any = {
         type: 'movies',
         page: 1,
         limit: 20,
         sortBy,
         sortOrder: getSortOrder(sortBy)
-      };      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
-      if (selectedGenre) searchParams.genre = selectedGenre;
-      if (selectedRating) {
-        // Convert rating to vote_average filter (rating >= selected value)
-        searchParams.ratings = [parseInt(selectedRating)];
+      };
+
+      if (hasSearchCriteria) {
+        if (searchTerm.trim()) searchParams.q = searchTerm.trim();
+        if (selectedGenre) searchParams.genre = selectedGenre;
+        if (selectedRating) {
+          // Convert rating to vote_average filter (rating >= selected value)
+          searchParams.ratings = [parseInt(selectedRating)];
+        }
+        if (selectedYear) searchParams.releaseYear = parseInt(selectedYear);
+        if (selectedCountry) searchParams.country = selectedCountry;
+        if (selectedLanguage) searchParams.language = selectedLanguage;
       }
-      if (selectedYear) searchParams.releaseYear = parseInt(selectedYear);
-      if (selectedCountry) searchParams.country = selectedCountry;
-      if (selectedLanguage) searchParams.language = selectedLanguage;
 
-      const response = await apiService.advancedSearch(searchParams);
-      
-      console.log('Search response:', response);
-
-      // Handle response structure (now unwrapped by API service)
-      const searchData = response as any;
-      
-      setMovies(searchData.results?.movies || searchData.movies || []);
+      // Store active filters for pagination
+      setActiveFilters(hasSearchCriteria ? searchParams : null);
       setCurrentPage(1);
-      setTotalPages(searchData.pagination?.totalPages || 1);
+      
+      // The useEffect will handle the actual API call
     } catch (error) {
       console.error('Search failed:', error);
-    } finally {
       setLoading(false);
     }
-  };  const clearFilters = () => {
+  };const clearFilters = () => {
     setSearchTerm('');
     setSelectedGenre('');
     setSelectedRating('');
@@ -176,7 +163,6 @@ const Movies: React.FC = () => {
           ><option value="date_added">Date Added (Latest)</option>
             <option value="title">Title A-Z</option>
             <option value="release_year">Year (Newest)</option>
-            <option value="vote_average">Rating (Highest)</option>
             <option value="popularity">Popularity</option>
           </select>
 
@@ -277,16 +263,53 @@ const Movies: React.FC = () => {
           <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p className="text-slate-400">Loading movies...</p>
         </div>
-      )}
-
-      {/* Movies Grid */}
+      )}      {/* Movies Grid */}
       {!loading && movies.length > 0 && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-white">
               {searchTerm || selectedGenre ? 'Search Results' : 'All Movies'} ({movies.length} items)
             </h2>
-          </div>          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {/* Top Pagination - Compact */}
+            {totalPages > 1 && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div className="flex space-x-1">
+                  {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                    const page = i + Math.max(1, currentPage - 1);
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-2 rounded-lg transition-colors text-sm ${
+                          page === currentPage
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                            : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </div><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {movies.map((movie) => (
               <MovieCard
                 key={movie.show_id}

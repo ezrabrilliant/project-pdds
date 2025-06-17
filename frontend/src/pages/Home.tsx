@@ -97,7 +97,7 @@ const Home: React.FC = () => {
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/25">
             <Sparkles className="text-white" size={28} />
           </div>
-          <h3 className="text-xl font-semibold mb-3 text-white">AI Recommendations</h3>
+          <h3 className="text-xl font-semibold mb-3 text-white">Recommendations</h3>
           <p className="text-slate-400 leading-relaxed">
             Get personalized recommendations using cosine similarity and genre-based algorithms.
           </p>

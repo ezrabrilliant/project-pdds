@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Tv, Film } from 'lucide-react';
+import { Star, Tv, Film, Timer } from 'lucide-react';
 import { useTMDBPoster } from '../hooks/useTMDBPoster';
+import { useTMDBDetails } from '../hooks/useTMDBDetails';
 import type { Movie, TVShow } from '../services/api';
 
 interface MovieCardProps {
@@ -25,7 +26,14 @@ const MovieCard: React.FC<MovieCardProps> = ({
         title: item.title,
         year: item.release_year,
         type: isMovie ? 'movie' : 'tv'
-    });    // Size variants - untuk slider gunakan width tetap, untuk grid gunakan full width
+    });
+
+    // Get TMDB details for duration
+    const { details: tmdbDetails } = useTMDBDetails({
+        title: item.title,
+        year: item.release_year,
+        type: isMovie ? 'movie' : 'tv'
+    });// Size variants - untuk slider gunakan width tetap, untuk grid gunakan full width
     const sizeClasses = {
         small: 'w-40',
         medium: 'w-full max-w-sm',  // Responsive untuk grid
@@ -40,7 +48,8 @@ const MovieCard: React.FC<MovieCardProps> = ({
         <Link
             to={linkPath}
             className={`group bg-slate-800/50 backdrop-blur-sm rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 flex flex-col overflow-hidden ${sizeClasses[size]} ${className}`}
-        >{/* Poster */}            <div className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center border-b border-purple-500/10 aspect-[1/1.5] relative overflow-hidden">
+        >            {/* Poster */}
+            <div className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center border-b border-purple-500/10 aspect-[2/3] relative overflow-hidden">{/* Fixed aspect ratio untuk konsistensi */}
                 {/* TMDB Poster Image */}
                 {posterUrl ? (
                     <img 
@@ -58,11 +67,10 @@ const MovieCard: React.FC<MovieCardProps> = ({
                             <div className="animate-pulse">
                                 <div className="w-8 h-8 bg-slate-400/20 rounded mb-2 mx-auto"></div>
                                 <p className={`${size === 'small' ? 'text-xs' : 'text-sm'}`}>Loading...</p>
-                            </div>
-                        ) : (
+                            </div>                        ) : (
                             <>
                                 {isMovie ? (
-                                    <Star size={iconSizeClasses[size]} className="mx-auto mb-1" />
+                                    <Film size={iconSizeClasses[size]} className="mx-auto mb-1" />
                                 ) : (
                                     <Tv size={iconSizeClasses[size]} className="mx-auto mb-1" />
                                 )}
@@ -72,9 +80,9 @@ const MovieCard: React.FC<MovieCardProps> = ({
                             </>
                         )}
                     </div>
-                )}                {/* Rating - Pojok Kiri Atas */}
-                <div className="absolute top-1 left-1 bg-black/70 backdrop-blur-md rounded px-1.5 py-0.5">
-                    <span className="text-white text-xs font-semibold">
+                )}                  {/* Rating - Pojok Kiri Atas */}
+                <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md rounded-lg px-2 py-1 flex items-center space-x-1">
+                    <span className="text-white text-sm font-bold">
                         ⭐ {(() => {
                             // Try multiple rating fields
                             const rating = (item as any).vote_average || 
@@ -85,16 +93,16 @@ const MovieCard: React.FC<MovieCardProps> = ({
                             return isNaN(numRating) ? 'N/A' : numRating.toFixed(1);
                         })()}
                     </span>
-                </div>
-
-                {/* Content Type Indicator - Pojok Kanan Atas */}
-                <div className="absolute top-1 right-1 bg-black/70 backdrop-blur-md rounded px-1.5 py-0.5 flex items-center space-x-1">
+                </div>{/* Content Type Indicator - Pojok Kanan Atas */}
+                <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md rounded-lg px-2 py-1 flex items-center space-x-1">
                     {isMovie ? (
-                        <Star size={12} className="text-yellow-400" />
+                        <Film size={14} className="text-purple-400" />
                     ) : (
-                        <Tv size={12} className="text-blue-400" />
+                        <Tv size={14} className="text-blue-400" />
                     )}
-                    <span className="text-white text-xs font-semibold">{item.release_year}</span>
+                    <span className="text-white text-sm font-bold">
+                        {item.release_year}
+                    </span>
                 </div>
             </div>
 
@@ -106,18 +114,22 @@ const MovieCard: React.FC<MovieCardProps> = ({
                 <p className={`text-slate-400 ${size === 'small' ? 'text-xs line-clamp-1 mb-2' : 'text-sm line-clamp-3 flex-1 mb-3'
                     }`}>
                     {item.description}
-                </p>          {/* Meta info */}                <div className={`mt-auto ${size === 'small' ? 'space-y-1' : 'space-y-2'}`}>
-                    {/* Duration for both Movies and TV Shows */}
+                </p>          {/* Meta info */}                <div className={`mt-auto ${size === 'small' ? 'space-y-1' : 'space-y-2'}`}>                    {/* Duration for both Movies and TV Shows */}
                     <div className={`flex items-center space-x-1 text-slate-500 ${size === 'small' ? 'text-xs' : 'text-sm'
-                        }`}>                        {isMovie ? (
-                            <Film size={size === 'small' ? 12 : 14} />
+                        }`}>
+                        {isMovie ? (
+                            <Timer size={size === 'small' ? 12 : 14} />
                         ) : (
                             <Tv size={size === 'small' ? 12 : 14} />
                         )}
                         <span>
                             {isMovie 
                                 ? (() => {
-                                    const duration = (item as Movie).duration_minutes;
+                                    // Get duration from TMDB details or fallback to local data
+                                    const tmdbDuration = tmdbDetails && 'runtime' in tmdbDetails ? tmdbDetails.runtime : null;
+                                    const localDuration = (item as Movie).duration_minutes;
+                                    const duration = tmdbDuration || localDuration;
+                                    
                                     if (!duration || duration === 0) return 'Unknown duration';
                                     const hours = Math.floor(duration / 60);
                                     const minutes = duration % 60;

@@ -13,12 +13,10 @@ const Navbar: React.FC = () => {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
-
   const navItems = [
     { path: '/', label: 'Home', icon: Film },
     { path: '/movies', label: 'Movies', icon: Film },
     { path: '/tv-shows', label: 'TV Shows', icon: Tv },
-    { path: '/search', label: 'Search', icon: Search },
     { path: '/genres', label: 'Genres', icon: Grid3X3 },
     { path: '/recommendations', label: 'Recommendations', icon: Sparkles },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
@@ -30,18 +28,19 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             🎬 CineHub
-          </Link>
-
-          {/* Global Search Bar */}
+          </Link>          {/* Global Search Bar */}
           <div className="flex-1 max-w-md mx-8">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-              <input
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />              <input
                 type="text"
                 placeholder="Search movies & TV shows..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg text-white placeholder-slate-400 focus:outline-none transition-all duration-300 ${
+                  location.pathname === '/search'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 border-purple-500/50 placeholder-white/70'
+                    : 'bg-slate-800/50 border-slate-600/50 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50'
+                }`}
               />
             </form>
           </div>
