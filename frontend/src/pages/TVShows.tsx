@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tv, Search, Filter, ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
+import { Tv, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { apiService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import type { TVShow, Genre } from '../services/api';
@@ -12,24 +12,43 @@ const TVShows: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');  const [selectedRating, setSelectedRating] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added' | 'rating'>('date_added');
+  const [selectedLanguage, setSelectedLanguage] = useState('');  const [sortBy, setSortBy] = useState<'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity'>('date_added');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
+  // Helper function to determine sort order based on field
+  const getSortOrder = (sortField: string): 'asc' | 'desc' => {
+    switch(sortField) {
+      case 'title': return 'asc'; // A-Z
+      case 'date_added': return 'desc'; // Latest first
+      case 'release_year': return 'desc'; // Newest first
+      case 'vote_average': return 'desc'; // Highest rating first
+      case 'popularity': return 'desc'; // Most popular first
+      default: return 'desc';
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [tvShowsResponse, genresResponse] = await Promise.all([          apiService.getTVShows({ page: currentPage, limit: 20 }),
+        // Always use advanced search to ensure sorting is applied
+        const [tvShowsResponse, genresResponse] = await Promise.all([
+          apiService.advancedSearch({
+            type: 'tvshows',
+            page: currentPage,
+            limit: 20,
+            sortBy,
+            sortOrder: getSortOrder(sortBy)
+          }),
           apiService.getGenres()
         ]);
         
         console.log('TVShows response:', tvShowsResponse);
         console.log('Genres response:', genresResponse);
-          // Handle wrapped response structure
-        const tvShowsData = (tvShowsResponse as any).data || tvShowsResponse;
-        const genresData = (genresResponse as any).data || genresResponse;
+
+        // Handle response structure
+        const tvShowsData = tvShowsResponse as any;
+        const genresData = genresResponse as any;
         
-        setTVShows(tvShowsData.tvShows || []);
+        setTVShows(tvShowsData.results?.tvShows || tvShowsData.results?.tvshows || tvShowsData.tvShows || []);
         setTotalPages(tvShowsData.pagination?.totalPages || 1);
         
         // Ensure genres is always an array
@@ -43,36 +62,43 @@ const TVShows: React.FC = () => {
     };
 
     fetchData();
-  }, [currentPage]);  const handleSearch = async () => {
+  }, [currentPage, sortBy]);const handleSearch = async () => {
     setLoading(true);
     try {
       // Check if we have any search criteria
       const hasSearchCriteria = searchTerm.trim() || selectedGenre || selectedRating || selectedYear || selectedLanguage;
-      
-      if (!hasSearchCriteria) {
-        // If no search criteria, just apply sort to all TV shows
-        const tvShowsResponse = await apiService.getTVShows({ 
-          page: 1, 
-          limit: 20
-        } as any);
-        const tvShowsData = tvShowsResponse as any;
-        setTVShows(tvShowsData.tvShows || []);
+        if (!hasSearchCriteria) {
+        // If no search criteria, use advanced search with just sorting
+        const searchParams: any = {
+          type: 'tvshows',
+          page: 1,
+          limit: 20,
+          sortBy,
+          sortOrder: getSortOrder(sortBy)
+        };
+
+        const response = await apiService.advancedSearch(searchParams);
+        const searchData = response as any;
+        setTVShows(searchData.results?.tvShows || searchData.results?.tvshows || searchData.tvShows || []);
         setCurrentPage(1);
-        setTotalPages(tvShowsData.pagination?.totalPages || 1);
+        setTotalPages(searchData.pagination?.totalPages || 1);
         setLoading(false);
         return;
-      }
-
-      // Use advanced search with filters
+      }// Use advanced search with filters
       const searchParams: any = {
         type: 'tvshows',
         page: 1,
         limit: 20,
         sortBy,
-        sortOrder: 'desc'
-      };      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
+        sortOrder: getSortOrder(sortBy)
+      };
+
+      if (searchTerm.trim()) searchParams.q = searchTerm.trim();
       if (selectedGenre) searchParams.genre = selectedGenre;
-      if (selectedRating) searchParams.rating = selectedRating;
+      if (selectedRating) {
+        // Convert rating to vote_average filter (rating >= selected value)
+        searchParams.ratings = [parseInt(selectedRating)];
+      }
       if (selectedYear) searchParams.releaseYear = parseInt(selectedYear);
       if (selectedLanguage) searchParams.language = selectedLanguage;
 
@@ -138,19 +164,18 @@ const TVShows: React.FC = () => {
             {Array.isArray(genres) && genres.map(genre => (
               <option key={genre.id} value={genre.name}>{genre.name}</option>
             ))}
-          </select>
-
-          <select
-            value={sortBy}            onChange={(e) => {
-              setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'rating');
-              // Auto-apply sort when changed
-              setTimeout(() => handleSearch(), 100);
+          </select>          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity');
             }}
             className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-          >            <option value="date_added">Sort by Date Added (Latest)</option>
-            <option value="title">Sort by Title A-Z</option>
-            <option value="release_year">Sort by Year (Newest)</option>
-            <option value="rating">Sort by Rating</option>
+          >
+            <option value="date_added">Date Added (Latest)</option>
+            <option value="title">Title A-Z</option>
+            <option value="release_year">Year (Newest)</option>
+            <option value="vote_average">Rating (Highest)</option>
+            <option value="popularity">Popularity</option>
           </select>
 
           <div className="flex space-x-2">
@@ -177,19 +202,18 @@ const TVShows: React.FC = () => {
         </div>        {/* Advanced Filters */}
         {showAdvancedFilters && (
           <div className="pt-4 border-t border-slate-600/50">
-            <div className="grid md:grid-cols-5 gap-4 mb-4">
-              <select
+            <div className="grid md:grid-cols-5 gap-4 mb-4">              <select
                 value={selectedRating}
                 onChange={(e) => setSelectedRating(e.target.value)}
                 className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
               >
                 <option value="">All Ratings</option>
-                <option value="TV-Y">TV-Y</option>
-                <option value="TV-Y7">TV-Y7</option>
-                <option value="TV-G">TV-G</option>
-                <option value="TV-PG">TV-PG</option>
-                <option value="TV-14">TV-14</option>
-                <option value="TV-MA">TV-MA</option>
+                <option value="9">9.0+ ⭐ Excellent</option>
+                <option value="8">8.0+ ⭐ Very Good</option>
+                <option value="7">7.0+ ⭐ Good</option>
+                <option value="6">6.0+ ⭐ Above Average</option>
+                <option value="5">5.0+ ⭐ Average</option>
+                <option value="4">4.0+ ⭐ Below Average</option>
               </select>
 
               <select

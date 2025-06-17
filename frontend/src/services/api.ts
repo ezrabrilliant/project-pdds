@@ -42,11 +42,11 @@ export interface Genre {
 
 export interface SearchFilters {
   genre?: string;
-  rating?: string;
+  ratings?: number[]; // Rating ranges (1-10) based on vote_average
   releaseYear?: number;
   country?: string;
   language?: string;
-  sortBy?: 'title' | 'release_year' | 'date_added' | 'rating';
+  sortBy?: 'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -197,12 +197,11 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
       console.error('Unexpected genres response structure:', response);
       return [];
     }
-  }
-  // Search
+  }  // Search
   async searchMovies(filters: SearchFilters & PaginationParams): Promise<any> {
     const params = new URLSearchParams();
     if (filters.genre) params.append('genre', filters.genre);
-    if (filters.rating) params.append('rating', filters.rating);
+    if (filters.ratings) params.append('ratings', filters.ratings.join(','));
     if (filters.releaseYear) params.append('releaseYear', filters.releaseYear.toString());
     if (filters.country) params.append('country', filters.country);
     if (filters.sortBy) params.append('sortBy', filters.sortBy);
@@ -217,7 +216,7 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
   async searchTVShows(filters: SearchFilters & PaginationParams): Promise<any> {
     const params = new URLSearchParams();
     if (filters.genre) params.append('genre', filters.genre);
-    if (filters.rating) params.append('rating', filters.rating);
+    if (filters.ratings) params.append('ratings', filters.ratings.join(','));
     if (filters.releaseYear) params.append('releaseYear', filters.releaseYear.toString());
     if (filters.country) params.append('country', filters.country);
     if (filters.sortBy) params.append('sortBy', filters.sortBy);
@@ -236,11 +235,9 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
       limit: filters.limit || 20,
       sortBy: filters.sortBy || 'date_added',
       sortOrder: filters.sortOrder || 'desc'
-    };
-
-    // Add filters as arrays (backend expects arrays)
+    };    // Add filters as arrays (backend expects arrays)
     if (filters.genre) requestBody.genres = [filters.genre];
-    if (filters.rating) requestBody.ratings = [filters.rating];
+    if (filters.ratings) requestBody.ratings = filters.ratings;
     if (filters.releaseYear) requestBody.years = [filters.releaseYear];
     if (filters.country) requestBody.countries = [filters.country];
     if (filters.language) requestBody.languages = [filters.language];
@@ -295,11 +292,10 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
 
   async clearCache(): Promise<{ success: boolean; data: { message: string } }> {
     return this.deleteRequest<{ success: boolean; data: { message: string } }>('/recommendations/cache');
-  }
-  // Legacy function for backward compatibility (deprecated)
+  }  // Legacy function for backward compatibility (deprecated)
   async getRecommendationsByGenresLegacy(genres: string[], type: 'movies' | 'tvshows' = 'movies', limit = 10): Promise<(Movie | TVShow)[]> {
     const response = await this.getRecommendationsByGenres(genres, type, limit);
-    return response.recommendations || [];
+    return (response.recommendations || []) as (Movie | TVShow)[];
   }
 
   // Analytics

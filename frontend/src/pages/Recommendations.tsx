@@ -139,10 +139,10 @@ const Recommendations: React.FC = () => {
       <div className="text-center space-y-3">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-3">
           <Sparkles size={32} className="text-purple-400" />
-          <span>AI Recommendations</span>
+          <span>Recommendations</span>
         </h1>
         <p className="text-slate-300 max-w-2xl mx-auto">
-          Get personalized recommendations based on your favorite genres using our advanced AI algorithms
+          Get personalized recommendations based on your favorite genres
         </p>
       </div>
 

@@ -5,7 +5,7 @@ import { apiService } from '../services/api';
 import type { Movie, TVShow, Genre, SearchFilters } from '../services/api';
 
 const Search: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [searchType, setSearchType] = useState<'movies' | 'tvshows' | 'all'>('all');
   const [filters, setFilters] = useState<SearchFilters>({});
@@ -16,7 +16,17 @@ const Search: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const ratings = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA'];
+  const ratingRanges = [
+    { label: '9.0 - 10.0 ⭐ Excellent', value: 9 },
+    { label: '8.0 - 8.9 ⭐ Very Good', value: 8 },
+    { label: '7.0 - 7.9 ⭐ Good', value: 7 },
+    { label: '6.0 - 6.9 ⭐ Above Average', value: 6 },
+    { label: '5.0 - 5.9 ⭐ Average', value: 5 },
+    { label: '4.0 - 4.9 ⭐ Below Average', value: 4 },
+    { label: '3.0 - 3.9 ⭐ Poor', value: 3 },
+    { label: '2.0 - 2.9 ⭐ Very Poor', value: 2 },
+    { label: '1.0 - 1.9 ⭐ Terrible', value: 1 }
+  ];
   const years = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
   useEffect(() => {
     const fetchGenres = async () => {
@@ -49,6 +59,39 @@ const Search: React.FC = () => {
         limit: 20,
         type: searchType
       };
+
+      // Set default sortOrder based on sortBy if not specified
+      if (filters.sortBy) {
+        searchParams.sortBy = filters.sortBy;
+        
+        // Set logical default sortOrder for each sortBy option
+        if (!filters.sortOrder) {
+          switch (filters.sortBy) {
+            case 'title':
+              searchParams.sortOrder = 'asc'; // A-Z
+              break;
+            case 'release_year':
+              searchParams.sortOrder = 'desc'; // Newest first
+              break;
+            case 'vote_average':
+              searchParams.sortOrder = 'desc'; // Highest rating first
+              break;
+            case 'popularity':
+              searchParams.sortOrder = 'desc'; // Most popular first
+              break;
+            case 'date_added':
+            default:
+              searchParams.sortOrder = 'desc'; // Latest first
+              break;
+          }
+        } else {
+          searchParams.sortOrder = filters.sortOrder;
+        }
+      } else {
+        // Default sort when no sortBy is selected
+        searchParams.sortBy = 'date_added';
+        searchParams.sortOrder = 'desc';
+      }
 
       // Only add query if it exists
       if (searchQuery.trim()) {
@@ -197,18 +240,45 @@ const Search: React.FC = () => {
             <option value="all">All Content</option>
             <option value="movies">Movies Only</option>
             <option value="tvshows">TV Shows Only</option>
-          </select>
-
-          <select
+          </select>          <select
             value={filters.sortBy || ''}
             onChange={(e) => updateFilter('sortBy', e.target.value)}
             className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-          >            <option value="">Sort by Date Added (Latest)</option>
-            <option value="title">Sort by Title A-Z</option>
-            <option value="release_year">Sort by Year (Newest)</option>
-            <option value="date_added">Sort by Date Added</option>
-            <option value="rating">Sort by Rating</option>
+          >
+            <option value="">Sort by Date Added (Latest)</option>
+            <option value="title">Sort by Title (A-Z)</option>
+            <option value="release_year">Sort by Year (Newest First)</option>
+            <option value="date_added">Sort by Date Added (Latest)</option>
+            <option value="vote_average">Sort by Rating (Highest First)</option>
+            <option value="popularity">Sort by Popularity (Most Popular)</option>
           </select>
+
+          {/* Sort Order Toggle - only show when sortBy is selected */}
+          {filters.sortBy && (
+            <button
+              onClick={() => {
+                const currentOrder = filters.sortOrder || 
+                  (filters.sortBy === 'title' ? 'asc' : 'desc');
+                updateFilter('sortOrder', currentOrder === 'asc' ? 'desc' : 'asc');
+              }}
+              className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white hover:bg-slate-600/50 transition-all"
+              title="Toggle sort direction"
+            >
+              {(() => {
+                const currentOrder = filters.sortOrder || 
+                  (filters.sortBy === 'title' ? 'asc' : 'desc');
+                if (filters.sortBy === 'title') {
+                  return currentOrder === 'asc' ? 'A→Z' : 'Z→A';
+                } else if (filters.sortBy === 'release_year') {
+                  return currentOrder === 'desc' ? '↓New' : '↑Old';
+                } else if (filters.sortBy === 'vote_average') {
+                  return currentOrder === 'desc' ? '↓High' : '↑Low';
+                } else {
+                  return currentOrder === 'desc' ? '↓' : '↑';
+                }
+              })()}
+            </button>
+          )}
 
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -247,20 +317,28 @@ const Search: React.FC = () => {
                   <option key={genre.id} value={genre.name}>{genre.name}</option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Rating</label>
-              <select
-                value={filters.rating || ''}
-                onChange={(e) => updateFilter('rating', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-              >
-                <option value="">All Ratings</option>
-                {ratings.map(rating => (
-                  <option key={rating} value={rating}>{rating}</option>
+            </div>            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Rating Ranges</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {ratingRanges.map(range => (
+                  <label key={range.value} className="flex items-center space-x-2 text-sm text-slate-300 hover:text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(filters.ratings || []).includes(range.value)}
+                      onChange={(e) => {
+                        const currentRatings = filters.ratings || [];
+                        if (e.target.checked) {
+                          updateFilter('ratings', [...currentRatings, range.value]);
+                        } else {
+                          updateFilter('ratings', currentRatings.filter(r => r !== range.value));
+                        }
+                      }}
+                      className="rounded border-slate-600 bg-slate-700 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>{range.label}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div>

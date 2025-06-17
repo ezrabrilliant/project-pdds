@@ -2,8 +2,7 @@
   "name": "netflix-recommendation-backend",
   "version": "1.0.0",
   "description": "Backend API for Netflix recommendation system",
-  "main": "dist/index.js",
-  "scripts": {
+  "main": "dist/index.js",  "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
@@ -12,7 +11,9 @@
     "db:schema": "ts-node src/scripts/execute-schema.ts",
     "db:import": "ts-node src/scripts/import-data.ts",
     "db:clear": "ts-node src/scripts/clear-database.ts",
-    "db:mongo": "ts-node src/scripts/setup-mongodb.ts"
+    "db:mongo": "ts-node src/scripts/setup-mongodb.ts",
+    "demo:recommendation": "ts-node src/scripts/run-demo.ts",
+    "demo:presentation": "ts-node src/scripts/demo-recommendation-presentation.ts"
   },
   "keywords": [
     "netflix",

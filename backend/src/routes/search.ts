@@ -212,13 +212,20 @@ router.post('/advanced', async (req, res) => {
         whereConditions.push(`m.release_year = ANY($${paramIndex})`);
         queryParams.push(years);
         paramIndex++;
-      }
-
-      if (ratings.length > 0) {
-        whereConditions.push(`m.rating = ANY($${paramIndex})`);
-        queryParams.push(ratings);
-        paramIndex++;
-      }      if (countries.length > 0) {
+      }      if (ratings.length > 0) {
+        // Convert rating ranges to vote_average filters
+        // ratings array contains floor values (e.g., [7, 8, 9] for ratings 7.0-7.9, 8.0-8.9, 9.0-9.9)
+        const ratingConditions: string[] = [];
+        ratings.forEach((rating: number) => {
+          ratingConditions.push(`(m.vote_average >= $${paramIndex} AND m.vote_average < $${paramIndex + 1})`);
+          queryParams.push(rating, rating + 1);
+          paramIndex += 2;
+        });
+        
+        if (ratingConditions.length > 0) {
+          whereConditions.push(`(${ratingConditions.join(' OR ')})`);
+        }
+      }if (countries.length > 0) {
         const countryConditions = countries.map(() => `m.country ILIKE $${paramIndex++}`);
         whereConditions.push(`(${countryConditions.join(' OR ')})`);
         countries.forEach((country: string) => queryParams.push(`%${country}%`));
@@ -277,12 +284,18 @@ router.post('/advanced', async (req, res) => {
         whereConditions.push(`t.release_year = ANY($${paramIndex})`);
         queryParams.push(years);
         paramIndex++;
-      }
-
-      if (ratings.length > 0) {
-        whereConditions.push(`t.rating = ANY($${paramIndex})`);
-        queryParams.push(ratings);
-        paramIndex++;
+      }      if (ratings.length > 0) {
+        // Convert rating ranges to vote_average filters for TV shows
+        const ratingConditions: string[] = [];
+        ratings.forEach((rating: number) => {
+          ratingConditions.push(`(t.vote_average >= $${paramIndex} AND t.vote_average < $${paramIndex + 1})`);
+          queryParams.push(rating, rating + 1);
+          paramIndex += 2;
+        });
+        
+        if (ratingConditions.length > 0) {
+          whereConditions.push(`(${ratingConditions.join(' OR ')})`);
+        }
       }
 
       if (countries.length > 0) {
