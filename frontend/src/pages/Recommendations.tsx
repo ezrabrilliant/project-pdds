@@ -23,10 +23,10 @@ const Recommendations: React.FC = () => {
       try {
         const genresResponse = await apiService.getGenres();
         console.log('Genres response:', genresResponse);
-          // Handle wrapped response structure
+        // Handle wrapped response structure
         const genresData = (genresResponse as any).data || genresResponse;
         const genres = genresData.genres || genresData;
-        
+
         if (Array.isArray(genres)) {
           setGenres(genres.sort((a, b) => b.total_count - a.total_count));
         } else {
@@ -40,12 +40,12 @@ const Recommendations: React.FC = () => {
   }, []);
 
   const handleGenreToggle = (genre: string) => {
-    setSelectedGenres(prev => 
+    setSelectedGenres(prev =>
       prev.includes(genre)
         ? prev.filter(g => g !== genre)
         : [...prev, genre]
     );
-  };  const getRecommendations = async () => {
+  }; const getRecommendations = async () => {
     if (selectedGenres.length === 0) return;
 
     setLoading(true);
@@ -56,14 +56,14 @@ const Recommendations: React.FC = () => {
         type: contentType,
         limit: 20
       });
-      
+
       const response = await apiService.getRecommendationsByGenres(
         selectedGenres,
         contentType,
         20
       );
-        console.log('API Response:', response);
-      
+      console.log('API Response:', response);
+
       if (response.recommendations) {
         console.log('Recommendations found:', response.recommendations.length);
         setRecommendations(response.recommendations);
@@ -92,9 +92,9 @@ const Recommendations: React.FC = () => {
         query,
         type: contentType === 'all' ? undefined : contentType,
         limit: 10
-      });      const items = contentType === 'movies' ? response.movies : 
-                   contentType === 'tvshows' ? response.tvShows : 
-                   [...(response.movies || []), ...(response.tvShows || [])];
+      }); const items = contentType === 'movies' ? response.movies :
+        contentType === 'tvshows' ? response.tvShows :
+          [...(response.movies || []), ...(response.tvShows || [])];
 
       setAvailableItems(items || []);
     } catch (error) {
@@ -118,7 +118,7 @@ const Recommendations: React.FC = () => {
         // It's a TV show
         response = await apiService.getTVShowRecommendations(selectedItem.show_id, 20);
       }
-        if (response.recommendations) {
+      if (response.recommendations) {
         setRecommendations(response.recommendations);
         setAlgorithmUsed(response.algorithm);
       } else {
@@ -135,7 +135,8 @@ const Recommendations: React.FC = () => {
   const clearSelection = () => {
     setSelectedGenres([]);
     setRecommendations([]);
-    setHasSearched(false);  };  return (
+    setHasSearched(false);
+  }; return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="text-center space-y-2 sm:space-y-3">
@@ -150,61 +151,58 @@ const Recommendations: React.FC = () => {
 
       {/* Genre Selection */}
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20">
-        <div className="space-y-4 sm:space-y-6">          {/* Content Type Selection */}
+        <div className="space-y-4 sm:space-y-6">          
+          {/* Content Type Selection */}
           <div className="flex justify-center">
             <div className="flex bg-slate-700/50 rounded-xl p-1 w-full max-w-md">
               <button
                 onClick={() => setContentType('movies')}
-                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${
-                  contentType === 'movies'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                    : 'text-slate-300 hover:text-white'
-                }`}
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${contentType === 'movies'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-slate-300 hover:text-white'
+                  }`}
               >
                 <Film size={18} />
                 <span>Movies</span>
               </button>
               <button
                 onClick={() => setContentType('tvshows')}
-                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${
-                  contentType === 'tvshows'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                    : 'text-slate-300 hover:text-white'
-                }`}
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${contentType === 'tvshows'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-slate-300 hover:text-white'
+                  }`}
               >
                 <Tv size={18} />
                 <span>TV Shows</span>
               </button>
               <button
                 onClick={() => setContentType('all')}
-                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${
-                  contentType === 'all'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                    : 'text-slate-300 hover:text-white'
-                }`}
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${contentType === 'all'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-slate-300 hover:text-white'
+                  }`}
               >
                 <Heart size={18} />
                 <span>Both</span>
               </button>
-            </div>          </div>          {/* Genre Selection */}
+            </div>
+          </div>
+          {/* Genre Selection */}
           <div>
             <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center space-x-2">
               <Heart className="text-pink-400" size={20} />
               <span>Select Your Favorite Genres</span>
-            </h3>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
+            </h3>            <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
               {genres.slice(0, showAllGenres ? genres.length : 8).map((genre) => (
                 <button
                   key={genre.id}
                   onClick={() => handleGenreToggle(genre.name)}
-                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 text-left ${
-                    selectedGenres.includes(genre.name)
-                      ? 'border-purple-500 bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white'
-                      : 'border-slate-600 bg-slate-700/30 text-slate-300 hover:border-purple-500/50 hover:bg-slate-600/30'
-                  }`}
+                  className={`w-[140px] h-[70px] sm:w-[150px] sm:h-[80px] p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 text-center flex flex-col justify-center ${selectedGenres.includes(genre.name)
+                    ? 'border-purple-500 bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white'
+                    : 'border-slate-600 bg-slate-700/30 text-slate-300 hover:border-purple-500/50 hover:bg-slate-600/30'
+                    }`}
                 >
-                  <div className="font-semibold text-sm sm:text-base">{genre.name}</div>
+                  <div className="font-semibold text-sm sm:text-base truncate">{genre.name}</div>
                   <div className="text-xs sm:text-sm text-slate-400">
                     {genre.total_count.toLocaleString()} items
                   </div>
@@ -236,7 +234,7 @@ const Recommendations: React.FC = () => {
               <Sparkles size={18} />
               <span>{loading ? 'Getting Recommendations...' : 'Get Recommendations'}</span>
             </button>
-            
+
             {selectedGenres.length > 0 && (
               <button
                 onClick={clearSelection}
@@ -270,7 +268,7 @@ const Recommendations: React.FC = () => {
       )}
 
       {/* Recommendations Results */}
-      {!loading && recommendations.length > 0 && (        
+      {!loading && recommendations.length > 0 && (
         <div className="space-y-4 sm:space-y-6">
           {/* Algorithm Information */}
           <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-purple-500/20">
@@ -287,7 +285,7 @@ const Recommendations: React.FC = () => {
                 </div>
               </div>
               <div className="text-left sm:text-right w-full sm:w-auto">
-                <p className="text-slate-300 text-xs sm:text-sm">Content Type: 
+                <p className="text-slate-300 text-xs sm:text-sm">Content Type:
                   <span className="ml-1 px-2 py-1 bg-purple-600/20 rounded-full text-xs">
                     {contentType === 'all' ? 'Movies & TV Shows' : contentType.charAt(0).toUpperCase() + contentType.slice(1)}
                   </span>
