@@ -150,23 +150,20 @@ const Search: React.FC = () => {
       />
     );
   };
-
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center animate-fade-in">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-slide-up">
-          <SearchIcon className="inline-block mr-3 animate-glow" size={36} />
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           Search
         </h1>
-        <p className="text-slate-300 text-lg animate-slide-up animate-stagger-1">
+        <p className="text-slate-300 text-lg">
           Find your perfect movie or TV show with advanced filtering
         </p>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20 animate-slide-up animate-stagger-2">
-        <div className="flex flex-col md:flex-row gap-4 animate-slide-in-left animate-stagger-3">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20 animate-slide-up animate-stagger-1"><div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input
@@ -246,92 +243,83 @@ const Search: React.FC = () => {
           >
             {loading ? 'Searching...' : 'Search'}
           </button>
-        </div>
-
-        {/* Filter Toggle Button */}
-        <div className="flex justify-between items-center mt-4 animate-slide-in-right animate-stagger-4">
-          {/* Filter button and advanced filters toggle */}
-        </div>
-
-        {/* Advanced Filters */}
+        </div>        {/* Advanced Filters */}
         {showFilters && (
-          <div className="mt-6 p-4 bg-slate-700/30 rounded-xl border-l-4 border-purple-500 animate-scale-in">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Genre</label>
-                <select
-                  value={filters.genre || ''}
-                  onChange={(e) => updateFilter('genre', e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-                >
-                  <option value="">All Genres</option>
-                  {genres.map(genre => (
-                    <option key={genre.id} value={genre.name}>{genre.name}</option>
-                  ))}
-                </select>
-              </div>            <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Rating Ranges</label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {ratingRanges.map(range => (
-                    <label key={range.value} className="flex items-center space-x-2 text-sm text-slate-300 hover:text-white cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={(filters.ratings || []).includes(range.value)}
-                        onChange={(e) => {
-                          const currentRatings = filters.ratings || [];
-                          if (e.target.checked) {
-                            updateFilter('ratings', [...currentRatings, range.value]);
-                          } else {
-                            updateFilter('ratings', currentRatings.filter(r => r !== range.value));
-                          }
-                        }}
-                        className="rounded border-slate-600 bg-slate-700 text-purple-600 focus:ring-purple-500"
-                      />
-                      <span>{range.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Release Year</label>
-                <select
-                  value={filters.releaseYear || ''}
-                  onChange={(e) => updateFilter('releaseYear', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-                >
-                  <option value="">All Years</option>
-                  {years.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Language</label>
-                <select
-                  value={filters.language || ''}
-                  onChange={(e) => updateFilter('language', e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-                >
-                  <option value="">All Languages</option>
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="fr">French</option>
-                  <option value="de">German</option>
-                  <option value="it">Italian</option>
-                  <option value="pt">Portuguese</option>
-                  <option value="ru">Russian</option>
-                  <option value="ja">Japanese</option>
-                  <option value="ko">Korean</option>
-                  <option value="zh">Chinese</option>
-                  <option value="hi">Hindi</option>
-                  <option value="ar">Arabic</option>
-                </select>
+          <div className="mt-6 pt-6 border-t border-slate-600 grid md:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Genre</label>
+              <select
+                value={filters.genre || ''}
+                onChange={(e) => updateFilter('genre', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Genres</option>
+                {genres.map(genre => (
+                  <option key={genre.id} value={genre.name}>{genre.name}</option>
+                ))}
+              </select>
+            </div><div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Rating Ranges</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {ratingRanges.map(range => (
+                  <label key={range.value} className="flex items-center space-x-2 text-sm text-slate-300 hover:text-white cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(filters.ratings || []).includes(range.value)}
+                      onChange={(e) => {
+                        const currentRatings = filters.ratings || [];
+                        if (e.target.checked) {
+                          updateFilter('ratings', [...currentRatings, range.value]);
+                        } else {
+                          updateFilter('ratings', currentRatings.filter(r => r !== range.value));
+                        }
+                      }}
+                      className="rounded border-slate-600 bg-slate-700 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>{range.label}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Release Year</label>
+              <select
+                value={filters.releaseYear || ''}
+                onChange={(e) => updateFilter('releaseYear', e.target.value ? parseInt(e.target.value) : undefined)}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Years</option>
+                {years.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Language</label>
+              <select
+                value={filters.language || ''}
+                onChange={(e) => updateFilter('language', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">All Languages</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="zh">Chinese</option>
+                <option value="hi">Hindi</option>
+                <option value="ar">Arabic</option>
+              </select>
+            </div>
+
+            <div className="lg:col-span-4 flex justify-between items-center pt-4">
               <div className="text-sm text-slate-400">
                 Use filters to narrow down results even without a search query
               </div>
@@ -355,23 +343,19 @@ const Search: React.FC = () => {
           </div>
         )}
       </div>      {/* Results */}
-      {!loading && results.length > 0 && (
-        <div className="animate-fade-in">
-          {/* Results Header */}
-          <div className="flex justify-between items-center mb-6 animate-slide-in-left">
+      {results && results.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-white">
               Search Results ({results.length} items)
             </h2>
-          </div>
-
-          {/* Results Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6 animate-slide-up">
+          </div>          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 lg:gap-5">
             {results.map(renderContentCard)}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center mt-8 animate-slide-up animate-stagger-1">
+            <div className="flex justify-center space-x-2">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const page = i + Math.max(1, currentPage - 2);
                 return (
@@ -393,18 +377,20 @@ const Search: React.FC = () => {
         </div>
       )}
 
-      {/* Loading and Empty States */}
-      {loading && (
-        <div className="flex justify-center items-center min-h-[300px] animate-fade-in">
-          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"></div>
-        </div>
-      )}
-
-      {!loading && results.length === 0 && searchQuery && (
-        <div className="text-center py-12 animate-fade-in">
+      {/* No Results */}
+      {results.length === 0 && !loading && (searchQuery || Object.keys(filters).length > 0) && (
+        <div className="text-center py-16">
           <SearchIcon className="mx-auto text-slate-500 mb-4" size={48} />
           <h3 className="text-xl font-semibold text-slate-400 mb-2">No results found</h3>
           <p className="text-slate-500">Try adjusting your search terms or filters</p>
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-16">
+          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-slate-400">Searching...</p>
         </div>
       )}
     </div>

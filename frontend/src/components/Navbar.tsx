@@ -22,19 +22,16 @@ const Navbar: React.FC = () => {
     { path: '/recommendations', label: 'Recommendations', icon: Sparkles },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];  return (
-    <nav className="bg-slate-900/90 backdrop-blur-sm border-b border-purple-500/20 sticky top-0 z-50 animate-slide-in-left">
+    <nav className="bg-slate-900/90 backdrop-blur-sm border-b border-purple-500/20 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link 
-            to="/" 
-            className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hover:animate-glow transition-all duration-300"
-          >
+          <Link to="/" className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             🎬 CineHub
           </Link>
 
           {/* Desktop Search Bar */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-8 animate-slide-up animate-stagger-1">
+          <div className="hidden lg:flex flex-1 max-w-md mx-8">
             <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
               <input
@@ -52,7 +49,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center space-x-1 animate-slide-in-right animate-stagger-2">
+          <div className="hidden lg:flex space-x-2">
             {navItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
@@ -72,7 +69,7 @@ const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-slate-300 hover:text-white hover:border-purple-500/50 transition-all duration-300 animate-scale-in"
+            className="lg:hidden p-2 text-white hover:text-purple-400 transition-colors"
             aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -81,7 +78,7 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-slate-700 animate-slide-up">
+          <div className="lg:hidden border-t border-purple-500/20 py-4">
             {/* Mobile Search */}
             <form onSubmit={handleSearch} className="relative mb-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />

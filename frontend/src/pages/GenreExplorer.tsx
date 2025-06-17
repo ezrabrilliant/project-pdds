@@ -66,23 +66,21 @@ const GenreExplorer: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center space-y-4 animate-fade-in">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-slide-up">
-          <Grid3X3 className="inline-block mr-3 animate-glow" size={36} />
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           Genre Explorer
         </h1>
-        <p className="text-slate-300 text-lg max-w-2xl mx-auto animate-slide-up animate-stagger-1">
+        <p className="text-slate-300 text-lg max-w-2xl mx-auto">
           Discover content by genre. Explore our comprehensive collection organized by categories.
         </p>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid md:grid-cols-3 gap-6 animate-slide-up animate-stagger-2">
-        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/20 animate-scale-in animate-stagger-1">
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/20">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-12 h-12 rounded-lg flex items-center justify-center">
               <Grid3X3 className="text-white" size={24} />
@@ -94,7 +92,7 @@ const GenreExplorer: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-blue-500/20 animate-scale-in animate-stagger-2">
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-blue-500/20">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 w-12 h-12 rounded-lg flex items-center justify-center">
               <Film className="text-white" size={24} />
@@ -108,7 +106,7 @@ const GenreExplorer: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-xl p-6 border border-green-500/20 animate-scale-in animate-stagger-3">
+        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-xl p-6 border border-green-500/20">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-green-600 to-blue-600 w-12 h-12 rounded-lg flex items-center justify-center">
               <Tv className="text-white" size={24} />
@@ -124,24 +122,22 @@ const GenreExplorer: React.FC = () => {
       </div>
 
       {/* Sort Controls */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-purple-500/20 animate-slide-in-left animate-stagger-3">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-          <h2 className="text-2xl font-semibold text-white">All Genres</h2>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-          >
-            <option value="name">Sort by Name</option>
-            <option value="total_count">Sort by Total Content</option>
-            <option value="movies_count">Sort by Movies</option>
-            <option value="tv_shows_count">Sort by TV Shows</option>
-          </select>
-        </div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+        <h2 className="text-2xl font-semibold text-white">All Genres</h2>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+          className="px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+        >
+          <option value="name">Sort by Name</option>
+          <option value="total_count">Sort by Total Content</option>
+          <option value="movies_count">Sort by Movies</option>
+          <option value="tv_shows_count">Sort by TV Shows</option>
+        </select>
       </div>
 
       {/* Genre Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in animate-stagger-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {sortedGenres.map((genre, index) => (
           <div
             key={genre.id}

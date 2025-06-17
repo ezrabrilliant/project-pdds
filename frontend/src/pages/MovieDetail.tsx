@@ -90,14 +90,14 @@ const MovieDetail: React.FC = () => {
             {/* Back Button */}
             <Link
                 to="/movies"
-                className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition-colors"
+                className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition-colors animate-fade-in"
             >
                 <ArrowLeft size={20} />
                 <span>Back to Movies</span>
             </Link>
 
             {/* Movie Header */}
-            <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-purple-500/20">
+            <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-purple-500/20 animate-scale-in">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                     {/* Movie Poster */}
                     <div className="lg:col-span-1">

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://31.57.241.234:3001/api';
 
 export interface Movie {
   show_id: string;

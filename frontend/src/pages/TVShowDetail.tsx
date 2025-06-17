@@ -93,16 +93,17 @@ const TVShowDetail: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Back Button */}
+    <div className="space-y-8">      {/* Back Button */}
       <Link 
         to="/tv-shows"
-        className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition-colors"
+        className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition-colors animate-fade-in"
       >
         <ArrowLeft size={20} />
         <span>Back to TV Shows</span>
-      </Link>      {/* TV Show Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20">
+      </Link>
+
+      {/* TV Show Header */}
+      <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20 animate-scale-in">
         <div className="grid lg:grid-cols-4 gap-8">          {/* TV Show Poster */}
           <div className="lg:col-span-1">
             <div className="aspect-[1/1.5] rounded-xl overflow-hidden border border-purple-500/20 bg-gradient-to-br from-purple-600/20 to-pink-600/20">

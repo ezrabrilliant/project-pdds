@@ -17,7 +17,7 @@ import searchRouter from './routes/search';
 dotenv.config({ path: '../.env' });
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Middleware
 app.use(helmet());
@@ -81,7 +81,7 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   try {
     console.log('🚀 Starting Netflix Recommendation API...');
     
@@ -89,10 +89,17 @@ app.listen(PORT, async () => {
     await connectPostgreSQL();
     await connectMongoDB();
     
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🎬 Movies API: http://localhost:${PORT}/api/movies`);
-    console.log(`📺 TV Shows API: http://localhost:${PORT}/api/tvshows`);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const host = isProduction ? '0.0.0.0' : '31.57.241.234';
+    
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📊 Health check: http://${host}:${PORT}/health`);
+    console.log(`🎬 Movies API: http://${host}:${PORT}/api/movies`);
+    console.log(`📺 TV Shows API: http://${host}:${PORT}/api/tvshows`);
+    
+    if (isProduction) {
+      console.log(`🌐 Server accessible from external IPs on port ${PORT}`);
+    }
     
   } catch (error) {
     console.error('❌ Failed to start server:', error);

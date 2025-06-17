@@ -116,11 +116,10 @@ const Movies: React.FC = () => {
     setCurrentPage(1);
     // Reload initial data
     handleSearch();
-  };
-  return (
+  };  return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="text-center space-y-3 sm:space-y-4">
+      <div className="text-center space-y-3 sm:space-y-4 animate-fade-in">
         <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-2 sm:space-x-3">
           <Film size={32} className="text-purple-400 sm:w-10 sm:h-10" />
           <span>Movies Collection</span>
@@ -131,7 +130,7 @@ const Movies: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20 animate-slide-up animate-stagger-1">
         {/* Main search row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
           <div className="sm:col-span-2 lg:col-span-2 relative">
@@ -187,11 +186,9 @@ const Movies: React.FC = () => {
               <span className="hidden sm:inline">Advanced</span>
             </button>
           </div>
-        </div>
-
-        {/* Advanced Filters */}
+        </div>        {/* Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="pt-4 border-t border-slate-600/50">
+          <div className="pt-4 border-t border-slate-600/50 animate-slide-up">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
               <select
                 value={selectedRating}

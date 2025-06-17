@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, TrendingUp, Film, Tv, Heart, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, TrendingUp, Film, Tv, Heart, Search } from 'lucide-react';
 import { apiService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import type { Movie, TVShow, Genre, RecommendationItem } from '../services/api';
@@ -138,56 +138,46 @@ const Recommendations: React.FC = () => {
     setHasSearched(false);  };  return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="text-center space-y-2 sm:space-y-3 animate-fade-in">
-        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-2 sm:space-x-3 animate-pulse">
-          <Sparkles size={28} className="text-purple-400 sm:w-8 sm:h-8 animate-spin-slow" />
-          <span className="animate-bounce-subtle">Recommendations</span>
+      <div className="text-center space-y-2 sm:space-y-3">
+        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-2 sm:space-x-3">
+          <Sparkles size={28} className="text-purple-400 sm:w-8 sm:h-8" />
+          <span>Recommendations</span>
         </h1>
-        <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base px-4 animate-slide-up">
+        <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base px-4">
           Get personalized recommendations based on your favorite genres
         </p>
       </div>
 
       {/* Genre Selection */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20 animate-slide-up hover:border-purple-500/40 transition-all duration-500 hover:shadow-lg hover:shadow-purple-500/10">        <div className="space-y-4 sm:space-y-6">
-          {/* Content Type Selection */}
-          <div className="flex justify-center animate-fade-in-delayed">
-            <div className="flex bg-slate-700/50 rounded-xl p-1 w-full max-w-md backdrop-blur-sm border border-slate-600/50">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20">
+        <div className="space-y-4 sm:space-y-6">          {/* Content Type Selection */}
+          <div className="flex justify-center">
+            <div className="flex bg-slate-700/50 rounded-xl p-1 w-full max-w-md">
               <button
                 onClick={() => setContentType('movies')}
-                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-300 flex-1 text-sm sm:text-base transform hover:scale-105 ${
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${
                   contentType === 'movies'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 animate-glow'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <Film size={18} className="animate-pulse" />
+                <Film size={18} />
                 <span>Movies</span>
               </button>
               <button
                 onClick={() => setContentType('tvshows')}
-                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-300 flex-1 text-sm sm:text-base transform hover:scale-105 ${
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${
                   contentType === 'tvshows'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 animate-glow'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <Tv size={18} className="animate-pulse" />
+                <Tv size={18} />
                 <span>TV Shows</span>
               </button>
               <button
                 onClick={() => setContentType('all')}
-                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-300 flex-1 text-sm sm:text-base transform hover:scale-105 ${
-                  contentType === 'all'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 animate-glow'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
-                }`}
-              >
-                <Heart size={18} className="animate-pulse" />
-                <span>Both</span>
-              </button>
-            </div>
-          </div>
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all flex-1 text-sm sm:text-base ${
                   contentType === 'all'
                     ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
                     : 'text-slate-300 hover:text-white'
