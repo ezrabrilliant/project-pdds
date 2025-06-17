@@ -118,18 +118,18 @@ const TVShows: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-3">
-          <Tv size={40} className="text-purple-400" />
+      <div className="text-center space-y-4 animate-fade-in">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-3 animate-slide-up">
+          <Tv size={40} className="text-purple-400 animate-glow" />
           <span>TV Shows Collection</span>
         </h1>
-        <p className="text-slate-300 text-lg">
+        <p className="text-slate-300 text-lg animate-slide-up animate-stagger-1">
           Explore incredible TV series from around the world
         </p>
       </div>      {/* Search and Filters */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20 animate-slide-up animate-stagger-2">
         {/* Main search row */}
-        <div className="grid md:grid-cols-5 gap-4 mb-4">
+        <div className="grid md:grid-cols-5 gap-4 mb-4 animate-slide-in-left animate-stagger-3">
           <div className="md:col-span-2 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <input
@@ -187,7 +187,7 @@ const TVShows: React.FC = () => {
           </div>
         </div>        {/* Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="pt-4 border-t border-slate-600/50">
+          <div className="mt-6 p-4 bg-slate-700/30 rounded-xl border-l-4 border-purple-500 animate-scale-in">
             <div className="grid md:grid-cols-5 gap-4 mb-4">              <select
                 value={selectedRating}
                 onChange={(e) => setSelectedRating(e.target.value)}
@@ -259,14 +259,13 @@ const TVShows: React.FC = () => {
 
       {/* Loading */}
       {loading && (
-        <div className="text-center py-16">
-          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading TV shows...</p>
+        <div className="flex justify-center items-center min-h-[400px] animate-fade-in">
+          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"></div>
         </div>
       )}      {/* TV Shows Grid */}
       {!loading && tvShows.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
+        <div className="animate-fade-in">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0 animate-slide-in-left">
             <h2 className="text-2xl font-semibold text-white">
               {searchTerm || selectedGenre ? 'Search Results' : 'All TV Shows'} ({tvShows.length} items)
             </h2>
@@ -308,21 +307,22 @@ const TVShows: React.FC = () => {
                   <ChevronRight size={16} />
                 </button>
               </div>
-            )}
-          </div><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            )}          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 lg:gap-5 animate-slide-up">
             {tvShows.map((tvShow) => (
               <MovieCard
                 key={tvShow.show_id}
                 item={tvShow}
                 type="tvshow"
-                size="large"
+                size="medium"
               />
             ))}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4">
+            <div className="flex justify-center mt-8 animate-slide-up animate-stagger-1">
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}

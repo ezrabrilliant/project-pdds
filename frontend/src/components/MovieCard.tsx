@@ -33,18 +33,18 @@ const MovieCard: React.FC<MovieCardProps> = ({
         title: item.title,
         year: item.release_year,
         type: isMovie ? 'movie' : 'tv'
-    });// Size variants - untuk slider gunakan width tetap, untuk grid gunakan full width
+    });    // Size variants - untuk slider gunakan width tetap, untuk grid gunakan full width
     const sizeClasses = {
-        small: 'w-40',
-        medium: 'w-full max-w-sm',  // Responsive untuk grid
-        large: 'w-full max-w-md'
+        small: 'w-40 min-w-[160px]', // Fixed width for sliders
+        medium: 'w-full',  // Full width for grid responsiveness
+        large: 'w-full'
     };
 
     const iconSizeClasses = {
         small: 16,
-        medium: 20,
-        large: 24
-    };    return (
+        medium: 18,
+        large: 20
+    };return (
         <Link
             to={linkPath}
             className={`group bg-slate-800/50 backdrop-blur-sm rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 flex flex-col overflow-hidden ${sizeClasses[size]} ${className}`}
@@ -81,8 +81,8 @@ const MovieCard: React.FC<MovieCardProps> = ({
                         )}
                     </div>
                 )}                  {/* Rating - Pojok Kiri Atas */}
-                <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md rounded-lg px-2 py-1 flex items-center space-x-1">
-                    <span className="text-white text-sm font-bold">
+                <div className="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/80 backdrop-blur-md rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 flex items-center space-x-1">
+                    <span className="text-white text-xs sm:text-sm font-bold">
                         ⭐ {(() => {
                             // Try multiple rating fields
                             const rating = (item as any).vote_average || 
@@ -93,28 +93,40 @@ const MovieCard: React.FC<MovieCardProps> = ({
                             return isNaN(numRating) ? 'N/A' : numRating.toFixed(1);
                         })()}
                     </span>
-                </div>{/* Content Type Indicator - Pojok Kanan Atas */}
-                <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md rounded-lg px-2 py-1 flex items-center space-x-1">
+                </div>
+
+                {/* Content Type Indicator - Pojok Kanan Atas */}
+                <div className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-black/80 backdrop-blur-md rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 flex items-center space-x-1">
                     {isMovie ? (
                         <Film size={14} className="text-purple-400" />
                     ) : (
                         <Tv size={14} className="text-blue-400" />
-                    )}
-                    <span className="text-white text-sm font-bold">
+                    )}                    <span className="text-white text-xs sm:text-sm font-bold">
                         {item.release_year}
                     </span>
                 </div>
-            </div>
-
-            {/* Content */}
-            <div className={`flex-1 flex flex-col ${size === 'small' ? 'p-2' : 'p-4'}`}><h3 className={`font-semibold text-white group-hover:text-purple-300 transition-colors ${size === 'small' ? 'text-sm line-clamp-1 mb-1' : size === 'medium' ? 'text-lg line-clamp-2 mb-2' : 'text-xl line-clamp-2 mb-2'
+            </div>            {/* Content */}
+            <div className={`flex-1 flex flex-col ${size === 'small' ? 'p-2' : 'p-2 sm:p-3'}`}>
+                <h3 className={`font-semibold text-white group-hover:text-purple-300 transition-colors ${
+                    size === 'small' 
+                        ? 'text-sm line-clamp-1 mb-1' 
+                        : size === 'medium' 
+                            ? 'text-sm sm:text-base line-clamp-2 mb-1 sm:mb-2' 
+                            : 'text-base sm:text-lg line-clamp-2 mb-2'
                 }`}>
-                {item.title}
-            </h3>
-                <p className={`text-slate-400 ${size === 'small' ? 'text-xs line-clamp-1 mb-2' : 'text-sm line-clamp-3 flex-1 mb-3'
-                    }`}>
+                    {item.title}
+                </h3>
+                
+                <p className={`text-slate-400 ${
+                    size === 'small' 
+                        ? 'text-xs line-clamp-1 mb-2' 
+                        : 'text-xs line-clamp-2 sm:line-clamp-3 flex-1 mb-2 sm:mb-3'
+                }`}>
                     {item.description}
-                </p>          {/* Meta info */}                <div className={`mt-auto ${size === 'small' ? 'space-y-1' : 'space-y-2'}`}>                    {/* Duration for both Movies and TV Shows */}
+                </p>
+
+                {/* Meta info */}
+                <div className={`mt-auto ${size === 'small' ? 'space-y-1' : 'space-y-2'}`}>{/* Duration for both Movies and TV Shows */}
                     <div className={`flex items-center space-x-1 text-slate-500 ${size === 'small' ? 'text-xs' : 'text-sm'
                         }`}>
                         {isMovie ? (

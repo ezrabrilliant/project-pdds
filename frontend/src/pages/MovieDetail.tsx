@@ -85,10 +85,8 @@ const MovieDetail: React.FC = () => {
                 </Link>
             </div>
         );
-    }
-
-    return (
-        <div className="space-y-8">
+    }    return (
+        <div className="space-y-6 sm:space-y-8">
             {/* Back Button */}
             <Link
                 to="/movies"
@@ -96,11 +94,14 @@ const MovieDetail: React.FC = () => {
             >
                 <ArrowLeft size={20} />
                 <span>Back to Movies</span>
-            </Link>            {/* Movie Header */}
-            <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20">
-                <div className="grid lg:grid-cols-4 gap-8">          {/* Movie Poster */}
+            </Link>
+
+            {/* Movie Header */}
+            <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-4 sm:p-6 lg:p-8 border border-purple-500/20">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+                    {/* Movie Poster */}
                     <div className="lg:col-span-1">
-                        <div className="aspect-[1/1.5] rounded-xl overflow-hidden border border-purple-500/20 bg-gradient-to-br from-purple-600/20 to-pink-600/20">
+                        <div className="w-full max-w-xs mx-auto lg:max-w-none aspect-[2/3] rounded-xl overflow-hidden border border-purple-500/20 bg-gradient-to-br from-purple-600/20 to-pink-600/20">
                             {posterUrl && !isPosterLoading ? (
                                 <img
                                     src={posterUrl}
@@ -129,41 +130,31 @@ const MovieDetail: React.FC = () => {
                     </div>
 
                     {/* Movie Info */}
-                    <div className="lg:col-span-3 space-y-6">
+                    <div className="lg:col-span-3 space-y-4 sm:space-y-6">
                         <div>
-                            <h1 className="text-4xl font-bold text-white mb-2">{movie.title}</h1>
-                            <p className="text-xl text-slate-300">Directed by {movie.director}</p>
-                        </div>            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center space-x-2 text-slate-300">
-                    <Calendar size={16} className="text-purple-400" />
-                    <span>Released: {movie.release_year}</span>
-                </div>
-                {(tmdbRuntime || movie.duration_minutes) && (
-                    <div className="flex items-center space-x-2 text-slate-300">
-                        <Clock size={16} className="text-purple-400" />
-                        <span>Duration: {(() => {
-                            const duration = tmdbRuntime || movie.duration_minutes;
-                            if (!duration) return 'Unknown';
-                            const hours = Math.floor(duration / 60);
-                            const minutes = duration % 60;
-                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-                        })()}</span>
-                    </div>
-                )}
-                <div className="flex items-center space-x-2 text-slate-300">
-                    <Star size={16} className="text-purple-400" />
-                    <span>Rating: {movie.rating}</span>
-                </div>
-                {tmdbCertification && (
-                    <div className="flex items-center space-x-2 text-slate-300">
-                        <Shield size={16} className="text-purple-400" />
-                        <span>Certification: {tmdbCertification}</span>
-                    </div>
-                )}
-                <div className="flex items-center space-x-2 text-slate-300">
-                    <Globe size={16} className="text-purple-400" />
-                    <span>Country: {movie.country}</span>
-                </div>
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">{movie.title}</h1>
+                            <p className="text-lg sm:text-xl text-slate-300">Directed by {movie.director}</p>
+                        </div>                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+                            <div className="flex items-center space-x-2 text-slate-300">
+                                <Calendar size={16} className="text-purple-400" />
+                                <span>Released: {movie.release_year}</span>
+                            </div>
+                            {(tmdbRuntime || movie.duration_minutes) && (
+                                <div className="flex items-center space-x-2 text-slate-300">
+                                    <Clock size={16} className="text-purple-400" />
+                                    <span>Duration: {(() => {
+                                        const duration = tmdbRuntime || movie.duration_minutes;
+                                        if (!duration) return 'Unknown';
+                                        const hours = Math.floor(duration / 60);
+                                        const minutes = duration % 60;
+                                        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                                    })()}</span>
+                                </div>
+                            )}
+                            <div className="flex items-center space-x-2 text-slate-300">
+                                <Star size={16} className="text-purple-400" />
+                                <span>Rating: {movie.rating}</span>
+                            </div>
                             <div className="flex items-center space-x-2 text-slate-300">
                                 <Globe size={16} className="text-purple-400" />
                                 <span>Country: {movie.country}</span>
@@ -177,21 +168,21 @@ const MovieDetail: React.FC = () => {
                         </div>
 
                         {/* Description */}
-                        <div className="space-y-2">              <h3 className="text-lg font-semibold text-white">Synopsis</h3>
-                            <p className="text-slate-300 leading-relaxed text-left">{movie.description}</p>
+                        <div className="space-y-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-white">Synopsis</h3>
+                            <p className="text-slate-300 leading-relaxed text-left text-sm sm:text-base">{movie.description}</p>
                         </div>
 
                         {/* Genres */}
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-white">Genres</h3>
-                            <div className="flex flex-wrap gap-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-white">Genres</h3>                            <div className="flex flex-wrap gap-2">
                                 {(() => {
                                     const genres = movie.genres as any;
                                     if (typeof genres === 'string') {
                                         return genres.split(',').map((genre: string, index: number) => (
                                             <span
                                                 key={index}
-                                                className="px-3 py-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full text-sm text-purple-300"
+                                                className="px-2 sm:px-3 py-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full text-xs sm:text-sm text-purple-300"
                                             >
                                                 {genre.trim()}
                                             </span>
@@ -200,15 +191,18 @@ const MovieDetail: React.FC = () => {
                                         return genres.map((genre: string, index: number) => (
                                             <span
                                                 key={index}
-                                                className="px-3 py-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full text-sm text-purple-300"
+                                                className="px-2 sm:px-3 py-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-full text-xs sm:text-sm text-purple-300"
                                             >
                                                 {genre}
                                             </span>
                                         ));
                                     }
                                     return null;
-                                })()}              </div>
-                        </div>            {/* Cast from TMDB */}
+                                })()}
+                            </div>
+                        </div>
+
+                        {/* Cast from TMDB */}
                         {tmdbCast && tmdbCast.length > 0 && (
                             <CastSlider cast={tmdbCast} title="Cast" />
                         )}
@@ -216,16 +210,18 @@ const MovieDetail: React.FC = () => {
                         {/* Fallback to original cast if TMDB data not available */}
                         {(!tmdbCast || tmdbCast.length === 0) && movie.cast_members && movie.cast_members.trim().length > 0 && (
                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                                <h3 className="text-base sm:text-lg font-semibold text-white flex items-center space-x-2">
                                     <Star size={20} className="text-purple-400" />
                                     <span>Cast</span>
                                 </h3>
-                                <p className="text-slate-300">{movie.cast_members}</p>
+                                <p className="text-slate-300 text-sm sm:text-base">{movie.cast_members}</p>
                             </div>
                         )}
                     </div>
                 </div>
-            </div>            {/* Recommendations */}
+            </div>
+
+            {/* Recommendations */}
             {recommendations.length > 0 && (
                 <MovieSlider
                     items={recommendations}

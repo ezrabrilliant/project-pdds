@@ -117,81 +117,86 @@ const Movies: React.FC = () => {
     // Reload initial data
     handleSearch();
   };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-3">
-          <Film size={40} className="text-purple-400" />
+      <div className="text-center space-y-3 sm:space-y-4">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center space-x-2 sm:space-x-3">
+          <Film size={32} className="text-purple-400 sm:w-10 sm:h-10" />
           <span>Movies Collection</span>
         </h1>
-        <p className="text-slate-300 text-lg">
+        <p className="text-slate-300 text-base sm:text-lg px-4">
           Discover amazing movies from our extensive collection
         </p>
-      </div>      {/* Search and Filters */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20">
         {/* Main search row */}
-        <div className="grid md:grid-cols-5 gap-4 mb-4">
-          <div className="md:col-span-2 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
+          <div className="sm:col-span-2 lg:col-span-2 relative">
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
             <input
               type="text"
               placeholder="Search movies... (optional)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
+              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 text-sm sm:text-base"
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
-          </div>
-
-          <select
+          </div>          <select
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
-            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
           >
             <option value="">All Genres</option>
             {Array.isArray(genres) && genres.map(genre => (
               <option key={genre.id} value={genre.name}>{genre.name}</option>
             ))}
-          </select>          <select
+          </select>
+
+          <select
             value={sortBy}
             onChange={(e) => {
               setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity');
             }}
-            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-          ><option value="date_added">Date Added (Latest)</option>
+            className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+          >
+            <option value="date_added">Date Added (Latest)</option>
             <option value="title">Title A-Z</option>
             <option value="release_year">Year (Newest)</option>
             <option value="popularity">Popularity</option>
-          </select>
-
-          <div className="flex space-x-2">
+          </select>          <div className="flex space-x-2 sm:space-x-3">
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50 text-sm sm:text-base"
             >
               {loading ? 'Searching...' : 'Search'}
-            </button>            <button
+            </button>
+
+            <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`px-4 py-3 border rounded-xl transition-all flex items-center space-x-2 ${
+              className={`px-3 sm:px-4 py-2 sm:py-3 border rounded-xl transition-all flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base ${
                 showAdvancedFilters 
                   ? 'bg-purple-600/20 border-purple-500/50 text-purple-300' 
                   : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:text-white hover:bg-slate-600/50'
               }`}
             >
               <Filter size={16} />
-              <span>Advanced</span>
+              <span className="hidden sm:inline">Advanced</span>
             </button>
           </div>
-        </div>        {/* Advanced Filters */}
+        </div>
+
+        {/* Advanced Filters */}
         {showAdvancedFilters && (
           <div className="pt-4 border-t border-slate-600/50">
-            <div className="grid md:grid-cols-5 gap-4 mb-4">              <select
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
+              <select
                 value={selectedRating}
                 onChange={(e) => setSelectedRating(e.target.value)}
-                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
               >
                 <option value="">All Ratings</option>
                 <option value="9">9.0+ ⭐ Excellent</option>
@@ -309,37 +314,37 @@ const Movies: React.FC = () => {
                 </button>
               </div>
             )}
-          </div><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          </div>          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 lg:gap-5">
             {movies.map((movie) => (
               <MovieCard
                 key={movie.show_id}
                 item={movie}
                 type="movie"
-                size="large"
+                size="medium"
               />
             ))}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4">
+            <div className="flex justify-center items-center space-x-2 sm:space-x-4 overflow-x-auto pb-2">
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="flex items-center space-x-2 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors text-sm sm:text-base min-w-fit"
               >
                 <ChevronLeft size={16} />
-                <span>Previous</span>
+                <span className="hidden sm:inline">Previous</span>
               </button>
 
-              <div className="flex space-x-2">
+              <div className="flex space-x-1 sm:space-x-2">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   const page = i + Math.max(1, currentPage - 2);
                   return (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base min-w-[40px] ${
                         page === currentPage
                           ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                           : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
@@ -349,14 +354,12 @@ const Movies: React.FC = () => {
                     </button>
                   );
                 })}
-              </div>
-
-              <button
+              </div>              <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="flex items-center space-x-2 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600/50 transition-colors text-sm sm:text-base min-w-fit"
               >
-                <span>Next</span>
+                <span className="hidden sm:inline">Next</span>
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -366,10 +369,10 @@ const Movies: React.FC = () => {
 
       {/* No Results */}
       {!loading && movies.length === 0 && (
-        <div className="text-center py-16">
-          <Film className="mx-auto text-slate-500 mb-4" size={48} />
-          <h3 className="text-xl font-semibold text-slate-400 mb-2">No movies found</h3>
-          <p className="text-slate-500">Try adjusting your search criteria</p>
+        <div className="text-center py-12 sm:py-16">
+          <Film className="mx-auto text-slate-500 mb-4" size={40} />
+          <h3 className="text-lg sm:text-xl font-semibold text-slate-400 mb-2">No movies found</h3>
+          <p className="text-sm sm:text-base text-slate-500">Try adjusting your search criteria</p>
         </div>
       )}
     </div>
