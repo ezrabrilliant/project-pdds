@@ -1,6 +1,5 @@
 import { connectPostgreSQL, connectMongoDB, checkDatabaseHealth } from '../config/database';
 import { setupMongoDB, updateAnalyticsAfterImport } from './setup-mongodb';
-import { importAllData } from './import-data';
 
 async function initializeDatabase(): Promise<void> {
   try {
