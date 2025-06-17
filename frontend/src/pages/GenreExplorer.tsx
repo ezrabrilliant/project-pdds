@@ -6,12 +6,12 @@ import type { Genre } from '../services/api';
 const GenreExplorer: React.FC = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'name' | 'total_count' | 'movies_count' | 'tv_shows_count'>('name');  useEffect(() => {
+  const [sortBy, setSortBy] = useState<'name' | 'total_count' | 'movies_count' | 'tv_shows_count'>('name'); useEffect(() => {
     const fetchGenres = async () => {
       try {
         const genresData = await apiService.getGenres();
         console.log('Genres data received:', genresData);
-        
+
         // Ensure genresData is an array
         if (Array.isArray(genresData)) {
           setGenres(genresData);
@@ -78,6 +78,7 @@ const GenreExplorer: React.FC = () => {
         </p>
       </div>
 
+
       {/* Stats Overview */}
       <div className="grid md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/20">
@@ -119,6 +120,155 @@ const GenreExplorer: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+
+      {/* Genre Insights */}
+      <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20">
+        <h3 className="text-2xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          📊 Genre Analytics Dashboard
+        </h3>
+
+        {/* Top Performers */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="space-y-3">
+            <h4 className="text-lg font-semibold text-white flex items-center space-x-2">
+              <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
+              <span>👑 Most Popular Genre</span>
+            </h4>
+            <div className="bg-slate-700/30 rounded-lg p-4">
+              <p className="text-xl font-bold text-amber-400">
+                {sortedGenres.sort((a, b) => b.total_count - a.total_count)[0]?.name || 'N/A'}
+              </p>
+              <p className="text-sm text-slate-400">
+                {sortedGenres.sort((a, b) => b.total_count - a.total_count)[0]?.total_count.toLocaleString()} total items
+              </p>
+              <div className="mt-2 w-full bg-slate-600 rounded-full h-2">
+                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-lg font-semibold text-white flex items-center space-x-2">
+              <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+              <span>🎬 Most Popular Movie</span>
+            </h4>
+            <div className="bg-slate-700/30 rounded-lg p-4">
+              <p className="text-xl font-bold text-red-400">
+                {sortedGenres.sort((a, b) => b.movie_count - a.movie_count)[0]?.name || 'N/A'}
+              </p>
+              <p className="text-sm text-slate-400">
+                {sortedGenres.sort((a, b) => b.movie_count - a.movie_count)[0]?.movie_count.toLocaleString()} movies
+              </p>
+              <div className="mt-2 w-full bg-slate-600 rounded-full h-2">
+                <div className="bg-gradient-to-r from-red-400 to-pink-500 h-2 rounded-full" style={{
+                  width: `${Math.min(100, (sortedGenres.sort((a, b) => b.movie_count - a.movie_count)[0]?.movie_count || 0) / (sortedGenres.sort((a, b) => b.total_count - a.total_count)[0]?.total_count || 1) * 100)}%`
+                }}></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-lg font-semibold text-white flex items-center space-x-2">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+              <span>📺 Most Popular Series</span>
+            </h4>
+            <div className="bg-slate-700/30 rounded-lg p-4">
+              <p className="text-xl font-bold text-indigo-400">
+                {sortedGenres.sort((a, b) => b.tvshow_count - a.tvshow_count)[0]?.name || 'N/A'}
+              </p>
+              <p className="text-sm text-slate-400">
+                {sortedGenres.sort((a, b) => b.tvshow_count - a.tvshow_count)[0]?.tvshow_count.toLocaleString()} shows
+              </p>
+              <div className="mt-2 w-full bg-slate-600 rounded-full h-2">
+                <div className="bg-gradient-to-r from-indigo-400 to-blue-500 h-2 rounded-full" style={{
+                  width: `${Math.min(100, (sortedGenres.sort((a, b) => b.tvshow_count - a.tvshow_count)[0]?.tvshow_count || 0) / (sortedGenres.sort((a, b) => b.total_count - a.total_count)[0]?.total_count || 1) * 100)}%`
+                }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Distribution Charts */}
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div>
+            <h4 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+              <span>📈 Content Distribution</span>
+            </h4>
+            <div className="space-y-3">
+              {sortedGenres.slice(0, 5).map((genre, index) => {
+                const maxCount = sortedGenres[0]?.total_count || 1;
+                const percentage = (genre.total_count / maxCount) * 100;
+                return (
+                  <div key={genre.id} className="flex items-center space-x-3">
+                    <div className="w-20 text-sm text-slate-400 truncate">{genre.name}</div>
+                    <div className="flex-1 bg-slate-600 rounded-full h-2">
+                      <div
+                        className={`bg-gradient-to-r ${getGenreColor(index)} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-slate-400 w-12 text-right">{genre.total_count}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>          <div>
+            <h4 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <span>⚖️ Balance Score</span>
+            </h4>
+            <div className="space-y-3">
+              {(() => {
+                // Create a sorted list specifically for balance score
+                const genresWithBalance = genres
+                  .filter(genre => genre.total_count >= 20)
+                  .map(genre => {
+                    const movieRatio = genre.movie_count / genre.total_count;
+                    const balanceScore = 100 - Math.abs(50 - (movieRatio * 100)) * 2;
+                    return { ...genre, balanceScore };
+                  })
+                  .sort((a, b) => b.balanceScore - a.balanceScore)
+                  .slice(0, 5);                return genresWithBalance.map((genre, index) => {
+                  // Different colors for each rank
+                  const rankColors = [
+                    'bg-gradient-to-r from-amber-400 to-yellow-500',     // #1 - Gold
+                    'bg-gradient-to-r from-purple-400 to-pink-500',     // #2 - Purple-Pink
+                    'bg-gradient-to-r from-blue-400 to-cyan-500',       // #3 - Blue-Cyan
+                    'bg-gradient-to-r from-green-400 to-emerald-500',   // #4 - Green
+                    'bg-gradient-to-r from-orange-400 to-red-500'       // #5 - Orange-Red
+                  ];
+                    return (
+                    <div key={genre.id} className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 w-24">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                          index === 0 ? 'bg-gradient-to-r from-amber-400 to-yellow-500' :
+                          index === 1 ? 'bg-gradient-to-r from-purple-400 to-pink-500' :
+                          index === 2 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
+                          index === 3 ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
+                          'bg-gradient-to-r from-orange-400 to-red-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div className="text-sm text-slate-400 truncate flex-1">{genre.name}</div>
+                      </div>
+                      <div className="flex-1 bg-slate-600 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-500 ${rankColors[index] || 'bg-gradient-to-r from-slate-400 to-slate-500'}`}
+                          style={{ width: `${genre.balanceScore}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-slate-400 w-12 text-right">{Math.round(genre.balanceScore)}%</div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Sort Controls */}
@@ -191,56 +341,97 @@ const GenreExplorer: React.FC = () => {
                     style={{ width: `${(genre.movie_count / genre.total_count) * 100}%` }}
                   ></div>
                 </div>
-              </div>
+              </div>              {/* Popularity Indicator */}
+              <div className="flex items-center justify-between">
+                {(() => {
+                  const totalItems = genre.total_count;
 
-              {/* Popularity Indicator */}
-              {genre.total_count > 100 && (
-                <div className="flex items-center space-x-1 text-xs text-purple-400">
-                  <TrendingUp size={12} />
-                  <span>Popular Genre</span>
-                </div>
-              )}
+                  // Adjusted thresholds to be more realistic
+                  if (totalItems >= 2000) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-amber-400">
+                        <TrendingUp size={12} />
+                        <span>🔥 Mega Popular</span>
+                      </div>
+                    );
+                  } else if (totalItems >= 1000) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-green-400">
+                        <TrendingUp size={12} />
+                        <span>⭐ Very Popular</span>
+                      </div>
+                    );
+                  } else if (totalItems >= 500) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-purple-400">
+                        <TrendingUp size={12} />
+                        <span>📈 Popular</span>
+                      </div>
+                    );
+                  } else if (totalItems >= 200) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-blue-400">
+                        <TrendingUp size={12} />
+                        <span>📊 Growing</span>
+                      </div>
+                    );
+                  } else if (totalItems >= 50) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-cyan-400">
+                        <TrendingUp size={12} />
+                        <span>🌱 Emerging</span>
+                      </div>
+                    );
+                  } else if (totalItems >= 10) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-slate-400">
+                        <TrendingUp size={12} />
+                        <span>💎 Niche</span>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-orange-400">
+                        <TrendingUp size={12} />
+                        <span>🔍 Rare</span>
+                      </div>
+                    );
+                  }
+                })()}
+                {/* Content Type Indicator - positioned on the right */}
+                {(() => {
+                  const movieRatio = genre.movie_count / genre.total_count;
+
+                  if (movieRatio >= 0.8) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-red-400">
+                        <Film size={10} />
+                        <span>🎬 Movie</span>
+                      </div>
+                    );
+                  } else if (movieRatio <= 0.2) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-indigo-400">
+                        <Tv size={10} />
+                        <span>📺 TV</span>
+                      </div>
+                    );
+                  } else if (movieRatio >= 0.4 && movieRatio <= 0.6) {
+                    return (
+                      <div className="flex items-center space-x-1 text-xs text-pink-400">
+                        <Grid3X3 size={10} />
+                        <span>⚖️ Mixed</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Genre Insights */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-purple-900/30 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20">
-        <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Genre Insights
-        </h3>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <h4 className="text-lg font-semibold text-white">Most Popular Genre</h4>
-            <p className="text-slate-300">
-              {sortedGenres.sort((a, b) => b.total_count - a.total_count)[0]?.name || 'N/A'}
-            </p>
-            <p className="text-sm text-slate-400">
-              {sortedGenres.sort((a, b) => b.total_count - a.total_count)[0]?.total_count.toLocaleString()} items
-            </p>
-          </div>          <div className="space-y-2">
-            <h4 className="text-lg font-semibold text-white">Movie-Heavy Genre</h4>
-            <p className="text-slate-300">
-              {sortedGenres.sort((a, b) => b.movie_count - a.movie_count)[0]?.name || 'N/A'}
-            </p>
-            <p className="text-sm text-slate-400">
-              {sortedGenres.sort((a, b) => b.movie_count - a.movie_count)[0]?.movie_count.toLocaleString()} movies
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-lg font-semibold text-white">TV Show Leader</h4>
-            <p className="text-slate-300">
-              {sortedGenres.sort((a, b) => b.tvshow_count - a.tvshow_count)[0]?.name || 'N/A'}
-            </p>
-            <p className="text-sm text-slate-400">
-              {sortedGenres.sort((a, b) => b.tvshow_count - a.tvshow_count)[0]?.tvshow_count.toLocaleString()} shows
-            </p>
-          </div>
-        </div>
-      </div>
+      </div>      
+      
     </div>
   );
 };
