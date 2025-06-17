@@ -193,3 +193,46 @@
     opacity: 0.8;
   }
 }
+
+/* Custom dropdown styling */
+select option {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border: none !important;
+}
+
+select option:hover,
+select option:focus {
+  background-color: rgba(139, 92, 246, 0.3) !important;
+  color: white !important;
+}
+
+select option:checked {
+  background-color: rgba(139, 92, 246, 0.5) !important;
+  color: white !important;
+}
+
+/* Webkit specific styling for better browser support */
+select {
+  background-image: none !important;
+}
+
+select::-webkit-scrollbar {
+  width: 8px;
+}
+
+select::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+select::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 4px;
+}
+
+select::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}

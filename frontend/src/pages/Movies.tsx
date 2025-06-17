@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Film, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Film, Search, Filter, ChevronLeft, ChevronRight, X, ChevronDown, Calendar, Star, Globe } from 'lucide-react';
 import { apiService } from '../services/api';
 import MovieCard from '../components/MovieCard';
 import type { Movie, Genre } from '../services/api';
@@ -131,41 +131,48 @@ const Movies: React.FC = () => {
 
       {/* Search and Filters */}
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-500/20 animate-slide-up animate-stagger-1">
-        {/* Main search row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
+        {/* Main search row */}        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
           <div className="sm:col-span-2 lg:col-span-2 relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-            <input
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />            <input
               type="text"
               placeholder="Search movies... (optional)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 bg-slate-900/70 backdrop-blur-sm border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 hover:bg-slate-800/80 hover:backdrop-blur-md transition-all text-sm sm:text-base leading-none"
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
-          </div>          <select
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-            className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
-          >
-            <option value="">All Genres</option>
-            {Array.isArray(genres) && genres.map(genre => (
-              <option key={genre.id} value={genre.name}>{genre.name}</option>
-            ))}
-          </select>
+          </div>
 
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity');
-            }}
-            className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
-          >
-            <option value="date_added">Date Added (Latest)</option>
-            <option value="title">Title A-Z</option>
-            <option value="release_year">Year (Newest)</option>
-            <option value="popularity">Popularity</option>
-          </select>          <div className="flex space-x-2 sm:space-x-3">
+          <div className="relative">
+            <Filter className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+            <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="w-full appearance-none pl-9 sm:pl-11 pr-9 sm:pr-11 py-2 sm:py-3 bg-slate-900/70 backdrop-blur-sm border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 hover:bg-slate-800/80 hover:backdrop-blur-md transition-all text-sm sm:text-base cursor-pointer"
+            >
+              <option value="">All Genres</option>
+              {Array.isArray(genres) && genres.map(genre => (
+                <option key={genre.id} value={genre.name}>{genre.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative">
+            <Star className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+            <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value as 'title' | 'release_year' | 'date_added' | 'vote_average' | 'popularity');
+              }}
+              className="w-full appearance-none pl-9 sm:pl-11 pr-9 sm:pr-11 py-2 sm:py-3 bg-slate-900/70 backdrop-blur-sm border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 hover:bg-slate-800/80 hover:backdrop-blur-md transition-all text-sm sm:text-base cursor-pointer"
+            >
+              <option value="date_added">Date Added (Latest)</option>
+              <option value="title">Title A-Z</option>
+              <option value="release_year">Year (Newest)</option>
+              <option value="popularity">Popularity</option>
+            </select>
+          </div><div className="flex space-x-2 sm:space-x-3">
             <button
               onClick={handleSearch}
               disabled={loading}
@@ -186,54 +193,63 @@ const Movies: React.FC = () => {
               <span className="hidden sm:inline">Advanced</span>
             </button>
           </div>
-        </div>        {/* Advanced Filters */}
+        </div>          {/* Advanced Filters */}
         {showAdvancedFilters && (
           <div className="pt-4 border-t border-slate-600/50 animate-slide-up">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
-              <select
-                value={selectedRating}
-                onChange={(e) => setSelectedRating(e.target.value)}
-                className="px-3 sm:px-4 py-2 sm:py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
-              >
-                <option value="">All Ratings</option>
-                <option value="9">9.0+ ⭐ Excellent</option>
-                <option value="8">8.0+ ⭐ Very Good</option>
-                <option value="7">7.0+ ⭐ Good</option>
-                <option value="6">6.0+ ⭐ Above Average</option>
-                <option value="5">5.0+ ⭐ Average</option>
-                <option value="4">4.0+ ⭐ Below Average</option>
-              </select>
+              <div className="relative">
+                <Star className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />                <select
+                  value={selectedRating}
+                  onChange={(e) => setSelectedRating(e.target.value)}
+                  className="w-full appearance-none pl-9 sm:pl-11 pr-9 sm:pr-11 py-2 sm:py-3 bg-slate-900/70 backdrop-blur-sm border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 hover:bg-slate-800/80 hover:backdrop-blur-md transition-all text-sm sm:text-base cursor-pointer"
+                >
+                  <option value="">All Ratings</option>
+                  <option value="9">9.0+ ⭐ Excellent</option>
+                  <option value="8">8.0+ ⭐ Very Good</option>
+                  <option value="7">7.0+ ⭐ Good</option>
+                  <option value="6">6.0+ ⭐ Above Average</option>
+                  <option value="5">5.0+ ⭐ Average</option>
+                  <option value="4">4.0+ ⭐ Below Average</option>
+                </select>
+              </div>
 
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              >
-                <option value="">All Years</option>
-                {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <Calendar className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full appearance-none pl-9 sm:pl-11 pr-9 sm:pr-11 py-2 sm:py-3 bg-slate-900/70 backdrop-blur-sm border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 hover:bg-slate-800/80 hover:backdrop-blur-md transition-all text-sm sm:text-base cursor-pointer"
+                >
+                  <option value="">All Years</option>
+                  {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
 
-              <select
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              >
-                <option value="">All Languages</option>
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
-                <option value="it">Italian</option>
-                <option value="pt">Portuguese</option>
-                <option value="ru">Russian</option>
-                <option value="ja">Japanese</option>
-                <option value="ko">Korean</option>
-                <option value="zh">Chinese</option>
-                <option value="hi">Hindi</option>
-                <option value="ar">Arabic</option>
-              </select>
+              <div className="relative">
+                <Globe className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="w-full appearance-none pl-9 sm:pl-11 pr-9 sm:pr-11 py-2 sm:py-3 bg-slate-900/70 backdrop-blur-sm border border-slate-600/50 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 hover:bg-slate-800/80 hover:backdrop-blur-md transition-all text-sm sm:text-base cursor-pointer"
+                >
+                  <option value="">All Languages</option>
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="it">Italian</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="ru">Russian</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="zh">Chinese</option>
+                  <option value="hi">Hindi</option>
+                  <option value="ar">Arabic</option>
+                </select>
+              </div>
 
               <div className="md:col-span-2 flex space-x-2">
                 <button
@@ -251,9 +267,6 @@ const Movies: React.FC = () => {
                   {loading ? 'Applying...' : 'Apply'}
                 </button>
               </div>
-            </div>
-            <div className="text-sm text-slate-400 text-center">
-              Use filters and sorting even without a search query to browse movies
             </div>
           </div>
         )}

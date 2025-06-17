@@ -11,6 +11,15 @@ const Home: React.FC = () => {
     totalContent: 0
   });
 
+  const handleSearchClick = () => {
+    // Focus pada search input di navbar
+    const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -81,45 +90,57 @@ const Home: React.FC = () => {
         </div>
       </section>      {/* Features Grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 px-4 animate-stagger-in">
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 animate-fade-in-up">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25 animate-bounce-subtle">
+        <button 
+          onClick={handleSearchClick}
+          className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 animate-fade-in-up group cursor-pointer"
+        >
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25 animate-bounce-subtle group-hover:shadow-purple-500/40 transition-all">
             <Search className="text-white" size={18} />
           </div>
-          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white">Search</h3>
-          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm">
-            Find movies and TV shows with advanced filtering.
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white group-hover:text-purple-300 transition-colors">Search</h3>
+          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm group-hover:text-slate-300 transition-colors">
+            Focus on search bar to find content quickly.
           </p>
-        </div>
+        </button>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25">
+        <Link 
+          to="/recommendations"
+          className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 group cursor-pointer"
+        >
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40 transition-all">
             <Sparkles className="text-white" size={18} />
           </div>
-          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white">Recommendations</h3>
-          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm">
-            Get AI-powered personalized suggestions.
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white group-hover:text-purple-300 transition-colors">Recommendations</h3>
+          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm group-hover:text-slate-300 transition-colors">
+            Get personalized recommendations based on your favorite genres.
           </p>
-        </div>
+        </Link>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25">
+        <Link 
+          to="/analytics"
+          className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 group cursor-pointer"
+        >
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40 transition-all">
             <TrendingUp className="text-white" size={18} />
           </div>
-          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white">Analytics</h3>
-          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm">
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white group-hover:text-purple-300 transition-colors">Analytics</h3>
+          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm group-hover:text-slate-300 transition-colors">
             Explore trends and content insights.
           </p>
-        </div>
+        </Link>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25">
+        <Link 
+          to="/genres"
+          className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-5 text-center border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 group cursor-pointer"
+        >
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40 transition-all">
             <Database className="text-white" size={18} />
           </div>
-          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white">Quality Data</h3>
-          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm">
-            Comprehensive database with quality scoring.
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold mb-1 sm:mb-2 text-white group-hover:text-purple-300 transition-colors">Genre Explorer</h3>
+          <p className="text-slate-400 leading-relaxed text-xs sm:text-sm group-hover:text-slate-300 transition-colors">
+            Explore content by genre categories.
           </p>
-        </div>
+        </Link>
       </section>
 
       {/* Quick Stats */}
@@ -152,52 +173,6 @@ const Home: React.FC = () => {
             <div className="text-slate-400 font-medium text-sm sm:text-base">Total Content</div>
           </div>
         </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4">
-        <Link 
-          to="/tv-shows"
-          className="group bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105"
-        >
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300">
-              <Tv className="text-white" size={20} />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white">TV Shows</h3>
-              <p className="text-slate-400 text-xs sm:text-sm">Browse series collection</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link 
-          to="/recommendations"
-          className="group bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105"
-        >
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300">              <Sparkles className="text-white" size={20} />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white">Get Recommendations</h3>
-              <p className="text-slate-400 text-xs sm:text-sm">AI-powered suggestions</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link 
-          to="/genres"
-          className="group bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 transform hover:scale-105 sm:col-span-2 lg:col-span-1"
-        >
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300">
-              <Database className="text-white" size={20} />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white">Explore Genres</h3>
-              <p className="text-slate-400 text-xs sm:text-sm">Discover by category</p>
-            </div>
-          </div>        </Link>
       </section>
 
       {/* Connection Test Link */}
