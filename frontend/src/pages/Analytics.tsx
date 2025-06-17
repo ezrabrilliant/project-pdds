@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Calendar, Star, Film, Tv, Globe } from 'lucide-react';
+import { BarChart3, Star, Film, Tv, Globe } from 'lucide-react';
 import { apiService } from '../services/api';
 
 const Analytics: React.FC = () => {

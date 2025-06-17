@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Tv, Film, Timer } from 'lucide-react';
+import { Tv, Film, Timer } from 'lucide-react';
 import { useTMDBPoster } from '../hooks/useTMDBPoster';
 import { useTMDBDetails } from '../hooks/useTMDBDetails';
 import type { Movie, TVShow } from '../services/api';

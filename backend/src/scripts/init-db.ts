@@ -1,5 +1,29 @@
 import { connectPostgreSQL, connectMongoDB, checkDatabaseHealth } from '../config/database';
 import { setupMongoDB, updateAnalyticsAfterImport } from './setup-mongodb';
+import { spawn } from 'child_process';
+import path from 'path';
+
+async function runImportScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const scriptPath = path.join(__dirname, 'import-data.ts');
+    const child = spawn('npx', ['ts-node', scriptPath], {
+      stdio: 'inherit',
+      shell: true
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Import script exited with code ${code}`));
+      }
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+  });
+}
 
 async function initializeDatabase(): Promise<void> {
   try {
@@ -20,10 +44,9 @@ async function initializeDatabase(): Promise<void> {
     // Step 2: Setup MongoDB collections and indexes
     console.log('\n🍃 Setting up MongoDB...');
     await setupMongoDB();
-    
-    // Step 3: Import CSV data to PostgreSQL
+      // Step 3: Import CSV data to PostgreSQL
     console.log('\n📊 Importing Netflix data...');
-    await importAllData();
+    await runImportScript();
     
     // Step 4: Update MongoDB analytics with imported data
     console.log('\n📈 Updating analytics data...');
