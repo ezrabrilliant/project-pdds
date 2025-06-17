@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://31.57.241.234:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://31.57.241.234:3001';
+const API_ENDPOINTS = `${API_BASE_URL}/api`;
 
 export interface Movie {
   show_id: string;
@@ -100,7 +101,7 @@ export interface CacheStats {
 }
 
 class ApiService {  private async request<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+    const response = await fetch(`${API_ENDPOINTS}${endpoint}`);
     if (!response.ok) {
       throw new Error(`API request failed: ${response.statusText}`);
     }
@@ -112,9 +113,8 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
     }
     
     return jsonResponse;
-  }
-  private async postRequest<T>(endpoint: string, data: any): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  }  private async postRequest<T>(endpoint: string, data: any): Promise<T> {
+    const response = await fetch(`${API_ENDPOINTS}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -132,9 +132,8 @@ class ApiService {  private async request<T>(endpoint: string): Promise<T> {
     }
     
     return jsonResponse;
-  }
-  private async deleteRequest<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  }  private async deleteRequest<T>(endpoint: string): Promise<T> {
+    const response = await fetch(`${API_ENDPOINTS}${endpoint}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

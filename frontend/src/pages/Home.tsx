@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, TrendingUp, Database, Star, Film, Tv, Sparkles, BarChart3 } from 'lucide-react';
+import { Search, TrendingUp, Database, Star, Film, Tv, Sparkles, BarChart3, Wifi } from 'lucide-react';
 import { apiService } from '../services/api';
 
 const Home: React.FC = () => {
@@ -49,6 +49,8 @@ const Home: React.FC = () => {
     fetchStats();
   }, []);  return (
     <div className="space-y-8 sm:space-y-12 lg:space-y-16">
+      {/* Connection Test Section */}
+
       {/* Hero Section */}
       <section className="text-center py-12 sm:py-16 lg:py-20 relative animate-fade-in">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl blur-3xl animate-pulse-slow"></div>
@@ -195,8 +197,21 @@ const Home: React.FC = () => {
               <h3 className="text-base sm:text-lg font-semibold text-white">Explore Genres</h3>
               <p className="text-slate-400 text-xs sm:text-sm">Discover by category</p>
             </div>
-          </div>
-        </Link>
+          </div>        </Link>
+      </section>
+
+      {/* Connection Test Link */}
+      <section className="text-center animate-fade-in">
+        <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
+          <p className="text-slate-400 text-sm mb-3">Need to test backend connection?</p>
+          <Link 
+            to="/connection"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-300 hover:text-white hover:bg-slate-600/50 transition-all text-sm"
+          >
+            <Wifi size={16} />
+            <span>Connection Test</span>
+          </Link>
+        </div>
       </section>
     </div>
   );

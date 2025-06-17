@@ -112,6 +112,8 @@ const Analytics: React.FC = () => {
           <p>Detailed analytics and charts will be displayed here</p>
           <p className="text-sm mt-2">Connected to real-time data from {analytics?.totalMovies || 0} movies and {analytics?.totalTVShows || 0} TV shows</p>
         </div>
+
+        
       </div>
     </div>
   );

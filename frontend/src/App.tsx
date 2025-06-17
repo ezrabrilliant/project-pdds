@@ -11,6 +11,7 @@ import Analytics from './pages/Analytics';
 import GenreExplorer from './pages/GenreExplorer';
 import MovieDetail from './pages/MovieDetail';
 import TVShowDetail from './pages/TVShowDetail';
+import ConnectionPage from './pages/ConnectionPage';
 
 // Import components
 import Navbar from './components/Navbar';
@@ -21,8 +22,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
         <Navbar />
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 min-h-screen">
-          <Routes>
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 min-h-screen">          <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/movies" element={<Movies />} />
             <Route path="/movies/:id" element={<MovieDetail />} />
@@ -32,6 +32,7 @@ function App() {
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/genres" element={<GenreExplorer />} />
+            <Route path="/connection" element={<ConnectionPage />} />
           </Routes>
         </main>
         <Footer />
